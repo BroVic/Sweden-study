@@ -12,7 +12,7 @@ tbl_df(data = eurodat)
 categoricals <-  eurodat %>%
   select(-id, -femaleEmployees, -over50)
 
-# print out tables of all categorical variables in console
+# print out univariate tables of all categorical variables in console
 sapply(categoricals, table)
 
 
