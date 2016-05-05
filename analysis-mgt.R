@@ -24,19 +24,36 @@ mydata <- readRDS("clean_2.rds")
 summary(mydata[, 66:68])
 stress <- mydata[, 66]
 violence <- mydata[, 67]
-bully <- mydata[, 68]
+bullying <- mydata[, 68]
 
+# Univariate plots of designated outcome variables
 barplot(table(stress))
 barplot(table(violence))
-barplot(table(bully))
+barplot(table(bullying))
 
+# A function to plot barcharts for the respective bivariates
 check <- function(x, pos ) {
   x <- table(stress, mydata[, pos]) 
   barplot(stress_time, beside = TRUE, legend = TRUE)
 }
-
-for (i in 69:78) {
-  check(stress, i)
+for (i in 69:78) {              # iteration of plotting across columns 69 to 78
+  check(stress, i)         
   check(violence, i)
-  check(bully, i)
+  check(bullying, i)
+}
+
+# run Chi-squared test of independence
+# Write a function 'printtest() to print out Pearson's Chi-Square test results
+# in console.
+printtest <- function(x, vec) {
+  for (i in vec) {
+    result <- chisq.test(x, mydata[, i])
+    print(result)
+  }
+}
+
+# Calling the function on all variables as earlier designated
+vars <- c(69:78)                # a vector of the covariates...
+for (i in 66:68) {              # looping the 3 outcome variables
+  printtest(mydata[, i], vars)
 }
