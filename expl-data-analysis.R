@@ -7,6 +7,8 @@ eurodat <- readRDS("clean_2.rds")
 
 # generate overview of data table
 tbl_df(data = eurodat)
+summary(eurodat)
+
 
 # subset categorical variables
 categoricals <-  eurodat %>%
