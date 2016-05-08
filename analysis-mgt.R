@@ -32,9 +32,9 @@ barplot(table(violence))
 barplot(table(bullying))
 
 # A function to plot barcharts for the respective bivariates
-check <- function(x, pos ) {
-  x <- table(stress, mydata[, pos]) 
-  barplot(stress_time, beside = TRUE, legend = TRUE)
+check <- function(x, pos) {
+  ht <- table(x, mydata[, pos]) 
+  barplot(ht, beside = TRUE, legend = TRUE)
 }
 for (i in 69:78) {              # iteration of plotting across columns 69 to 78
   check(stress, i)         
