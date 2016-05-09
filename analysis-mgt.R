@@ -63,7 +63,7 @@ for (i in 69:78) {              # iteration of plotting across columns 69 to 78
   check(bullying, i)
 }
 layout(matrix(1))               # return graphics device to former state
-oldpar
+par(oldpar)
 rm(oldpar)
 
 # run Chi-squared test of independence
