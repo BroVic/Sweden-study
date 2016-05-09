@@ -26,12 +26,22 @@ stress <- mydata[, 66]
 violence <- mydata[, 67]
 bullying <- mydata[, 68]
 
+covars <- c(69:78)                # a vector of the covariates...
+
 # Univariate plots of designated outcome variables
 barplot(table(stress))
 barplot(table(violence))
 barplot(table(bullying))
 
-# Bivariate plots:
+# Bivariate Analyses
+# Contingengy tables (all)
+for (i in 66:68) {
+  for (j in covars)
+    print(table(mydata[, i], mydata[, j],
+                dnn = c(colnames(mydata[i]), colnames(mydata[j]))))
+}
+
+# Plots:
 # A function to plot barcharts for the respective bivariates
 check <- function(x, pos) {
   ht <- table(x, mydata[, pos]) 
@@ -67,7 +77,6 @@ printtest <- function(x, vec) {
 }
 
 # Calling the function on all variables as earlier designated
-vars <- c(69:78)                # a vector of the covariates...
 for (i in 66:68) {              # looping the 3 outcome variables
-  printtest(mydata[, i], vars)
+  printtest(mydata[, i], covars)
 }
