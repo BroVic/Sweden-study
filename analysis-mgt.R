@@ -31,16 +31,30 @@ barplot(table(stress))
 barplot(table(violence))
 barplot(table(bullying))
 
+# Bivariate plots:
 # A function to plot barcharts for the respective bivariates
 check <- function(x, pos) {
   ht <- table(x, mydata[, pos]) 
-  barplot(ht, beside = TRUE, legend = TRUE)
+  barplot(ht,
+          beside = TRUE,
+          legend = FALSE,
+          ylim = c(0, 8000),
+          yaxt = "n",
+          col = c("blue", "yellow", "red", "green"))
 }
+
+oldpar <- par() # plot one outcome per row, one independent variable per column 
+par(mar = c(1, 1, 1, 1))
+layout(matrix(c(1:10,11:20, 21:30), nrow = 3, ncol = 10, byrow = TRUE))
+
 for (i in 69:78) {              # iteration of plotting across columns 69 to 78
   check(stress, i)         
   check(violence, i)
   check(bullying, i)
 }
+layout(matrix(1))               # return graphics device to former state
+oldpar
+rm(oldpar)
 
 # run Chi-squared test of independence
 # Write a function 'printtest() to print out Pearson's Chi-Square test results
