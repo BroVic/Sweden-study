@@ -1,6 +1,5 @@
 # Analysis of Management Staff Perceptions
 library(dplyr)
-library(caret)
 mydata <- readRDS("clean_2.rds")
 
 ## Outcome variables
@@ -88,3 +87,12 @@ index <- sample(nrow(mydata), nrow(mydata)*0.2)
 test <- mydata[index, ]
 train <- mydata[-index, ]
 rm(index)
+
+# Save objects
+saveRDS(train, file = "training-data.rds")
+saveRDS(test, "test-data.rds")
+
+# Housekeeping
+rm(list = ls())
+detach(package:dplyr, unload = TRUE)
+save.image()
