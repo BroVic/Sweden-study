@@ -1,5 +1,6 @@
 # Analysis of Management Staff Perceptions
 library(dplyr)
+library(caret)
 mydata <- readRDS("clean_2.rds")
 
 ## Outcome variables
@@ -80,3 +81,10 @@ printtest <- function(x, vec) {
 for (i in 66:68) {              # looping the 3 outcome variables
   printtest(mydata[, i], covars)
 }
+
+# Predictive Modelling
+# Partitioning the dataset
+index <- sample(nrow(mydata), nrow(mydata)*0.2)
+test <- mydata[index, ]
+train <- mydata[-index, ]
+rm(index)
