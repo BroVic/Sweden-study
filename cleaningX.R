@@ -39,12 +39,17 @@ Amelia::missmap(interim, main = "Plot of the Missing Values")
 
 # How many observations are "truly" complete and who are they?
 sum(complete.cases(interim))
-index <- which(complete.cases(interim))
+index_row <- which(complete.cases(interim)) # index of rows
+
+index_col <- apply(interim, MARGIN = 2, anyNA)
+
 
 # subset the data to retain only non-NA records
-interim <- interim[index, ]
+interim <- interim[index_row, ]
 any_missing <- apply(interim, MARGIN = 2, anyNA)
 viewProblem(any_missing)
+
+interim <- droplevels(interim, except = index_col)
 
 dim(interim)
 
