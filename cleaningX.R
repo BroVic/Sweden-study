@@ -12,7 +12,7 @@ interim <- readRDS("clean_2.rds")
 # quantify the problem. Culprit responses are "Unknown" and "No answer"
 problem <- apply(interim, MARGIN = 2, function(x)
   length(x[x == "Unknown" | x == "No answer"]))
-
+problem
 # Visualise
 # First a function to ease plotting...
 viewProblem <- function(x) {
@@ -49,16 +49,19 @@ interim <- interim[index_row, ]
 any_missing <- apply(interim, MARGIN = 2, anyNA)
 viewProblem(any_missing)
 
-interim <- droplevels(interim, except = index_col)
+interim <- droplevels(interim)
 
 dim(interim)
+dplyr::glimpse(interim)
 
 # Saving...
 saveRDS(interim, file = "clean_x.rds")
 
 # Cleaning up
 rm(list = ls())
-unloadNamespace("Amelia"); unloadNamespace("Rcpp")
+unloadNamespace("Amelia");
+unloadNamespace("dplyr")
+unloadNamespace("Rcpp")
 
 
 
