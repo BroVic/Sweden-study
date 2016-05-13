@@ -62,3 +62,8 @@ show_miss(compl.data) # no more NAs
 glimpse(compl.data) # inspect overview
 
 saveRDS(compl.data, "clean_2.rds")
+
+# Wiping off
+rm(list = ls())
+detach(package:Amelia, unload = TRUE)
+detach(package:dplyr, unload = TRUE)

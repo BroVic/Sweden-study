@@ -69,21 +69,23 @@ rawdata[, 3] <- factor(rawdata[, 3],
                        labels = names(recode))
 
 recode <- c("< 1990" = 1, "1990-2006" = 2, "> 2006" = 3, "unknown" = 4)
-rawdata[, 5] <- factor(rawdata[, 5], levels = recode,
+rawdata[, 5] <- factor(rawdata[, 5], levels = recode, ordered = TRUE,
                        labels = names(recode))
 
-recode <- c("Large Impact" = 1, "Some Impact" = 2,
-            "Practically no impact" = 3, "Unknown" = 4)
-rawdata[, 15] <- factor(rawdata$policy.impact, levels = recode,
+recode <- c("Practically no impact" = 3, "Some Impact" = 2, "Large Impact" = 1, 
+             "Unknown" = 4)
+rawdata[, 15] <- factor(rawdata$policy.impact, levels = recode, ordered = TRUE,
                         labels = names(recode))
 
-recode <- c("Regularly" = 1, "Occasionally" = 2, "Practically never",
+recode <- c("Practically never", "Occasionally" = 2, "Regularly" = 1,
             "Unknown" = 4)
-rawdata[, 21] <- factor(rawdata[, 21], levels = recode, labels = names(recode))
+rawdata[, 21] <- factor(rawdata[, 21], levels = recode, ordered = TRUE,
+                        labels = names(recode))
 
-recode <- c("Very high" = 1, "Quite high" = 2, "Quite low" = 3,
-            "Very low" = 4, "Unknown" = 5)
-rawdata[, 22] <- factor(rawdata[, 22], levels = recode, labels = names(recode))
+recode <- c("Very low" = 4, "Quite low" = 3, "Quite high" = 2, "Very high" = 1,
+             "Unknown" = 5)
+rawdata[, 22] <- factor(rawdata[, 22], levels = recode, ordered = TRUE,
+                        labels = names(recode))
 
 recode <- c("Conducted by own staff" = 1,
             "Contracted to external providers" = 2, "Both about equally" = 3,
@@ -107,46 +109,47 @@ recode <- c("Yes" = 1, "No" = 2,
             "No answer" = 4)
 rawdata[, 88] <- factor(rawdata[, 88], levels = recode, labels = names(recode))
 
-recode <- c("Very effective" = 1, "Quite effective" = 2,
-            "Quite ineffective" = 3, "Very ineffective" = 4, "No answer" = 5) 
-rawdata[, 97] <- factor(rawdata[, 97], levels = recode, labels = names(recode))
+recode <- c("Very ineffective" = 4, "Quite ineffective" = 3,
+            "Quite effective" = 2, "Very effective" = 1, "No answer" = 5) 
+rawdata[, 97] <- factor(rawdata[, 97], levels = recode, ordered = TRUE,
+                        labels = names(recode))
 
-recode <- c("More difficult" = 1, "Less difficult" = 2,
-            "No difference" = 3, "No answer" = 4) 
-rawdata[, 100] <- factor(rawdata[, 100], levels = recode,
+recode <- c("No difference" = 3, "Less difficult" = 2, "More difficult" = 1, 
+             "No answer" = 4) 
+rawdata[, 100] <- factor(rawdata[, 100], ordered = TRUE, levels = recode,
                          labels = names(recode))
 
-recode <- c("Very important" = 1, "Quite important" = 2,
-            "Quite unimportant" = 3, "Totally unimportant" = 4, "No answer" = 5)
-rawdata[, 115] <- factor(rawdata[, 115], levels = recode,
+recode <- c("Totally unimportant" = 4, "Quite unimportant" = 3,
+            "Quite important" = 2, "Very important" = 1, "No answer" = 5)
+rawdata[, 115] <- factor(rawdata[, 115], levels = recode, ordered = TRUE,
                          labels = names(recode))
 
-recode <- c("Often" = 1, "Sometimes" = 2, "Practically never" = 3,
+recode <- c("Practically never" = 3, "Sometimes" = 2, "Often" = 1,  
             "No answer" = 4)
-rawdata[, 116] <- factor(rawdata[, 116], levels = recode,
+rawdata[, 116] <- factor(rawdata[, 116], levels = recode, ordered = TRUE,
                          labels = names(recode))
 
 recode <- c("None at all" = 1, "< 20%" = 2, "20% - 40%" = 3,
             "40% - 60%" = 4, "60% - 80%" = 5, "80% - 100%" = 6,
             "All" = 7, "Unknown" = 8) 
-rawdata[, 121] <- factor(rawdata[, 121], levels = recode,
+rawdata[, 121] <- factor(rawdata[, 121], levels = recode, ordered = TRUE,
                          labels = names(recode))
 
 recode <- c("None at all" = 1, "< 20%" = 2, "20% - 40%" = 3,
             "40% - 60%" = 4, "60% - 80%" = 5, "80% - 100%" = 6, "All" = 7,
             "Unknown" = 8) 
-rawdata[, 123] <- factor(rawdata[, 123], levels = recode,
+rawdata[, 123] <- factor(rawdata[, 123], levels = recode, ordered = TRUE,
                          labels = names(recode))
 
-recode <- c("Very high" = 1, "Quite high" = 2, "About average" = 3,
-            "Quite low" = 4, "Very low" = 5, "No answer" = 6) 
+recode <- c("Very low" = 5, "Quite low" = 4, "About average" = 3,
+            "Quite high" = 2, "Very high" = 1, "No answer" = 6) 
 rawdata[, 124] <- factor(rawdata[, 124], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
-recode <- c("Very good" = 1, "Quite good" = 2, "Neither good nor bad" = 3,
-            "Quite bad" = 4, "Very bad" = 5, "No answer" = 6) 
+recode <- c("Very bad" = 5, "Quite bad" = 4, "Neither good nor bad" = 3,
+            "Quite good" = 2, "Very good" = 1, "No answer" = 6) 
 rawdata[, 125] <- factor(rawdata[, 125], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
 recode <- c("Yes" = 1, "No" = 2, "Refused" = 3) 
 rawdata[, 130] <- factor(rawdata[, 130], levels = recode,
@@ -162,40 +165,40 @@ recode <- c("Yes, agrees" = 1, "No, does not agree" = 2, "Unknown" = 3)
 rawdata[, 136] <- factor(rawdata[, 136], levels = recode,
                          labels = names(recode))
 
-recode <- c("Several times a month" = 1, "Once a month" = 2,
-            "Several times a year" = 3, "Once a year" = 4,
-            "Less than once a year" = 5, "Unknown" = 6) 
+recode <- c("Less than once a year" = 5, "Once a year" = 4,
+            "Several times a year" = 3, "Once a month" = 2,
+            "Several times a month" = 1, "Unknown" = 6) 
 rawdata[, 138] <- factor(rawdata[, 138], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
-recode <- c("Often" = 1, "Sometimes" = 2, "Practically never" = 3,
+recode <- c("Practically never" = 3, "Sometimes" = 2, "Often" = 1,  
             "Unknown" = 4) 
 rawdata[, 139] <- factor(rawdata[, 139], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
-recode <- c("Large Impact" = 1, "Some impact" = 2, "Practically no impact" = 3,
-            "Unknown" = 4) 
+recode <- c("Practically no impact" = 3, "Some impact" = 2,
+            "Large Impact" = 1, "Unknown" = 4) 
 rawdata[, 177] <- factor(rawdata[, 177], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
-recode <- c("Yes" = 1, "No" = 2, "Only partly" = 3, "Unknown" = 4) 
+recode <- c("No" = 2, "Only partly" = 3, "Yes" = 1, "Unknown" = 4) 
 rawdata[, 184] <- factor(rawdata[, 184], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
-recode <- c("Very high" = 1, "Quite high" = 2, "Quite low" = 3, "Very low" = 4,
-            "Unknown" = 5) 
+recode <- c("Very low" = 4, "Quite low" = 3, "Quite high" = 2,
+            "Very high" = 1, "Unknown" = 5) 
 rawdata[, 190] <- factor(rawdata[, 190], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
-recode <- c("More difficult" = 1, "Less difficult" = 2, "No difference" = 3,
+recode <- c("Less difficult" = 2, "No difference" = 3, "More difficult" = 1,
             "Unknown" = 4) 
 rawdata[, 227] <- factor(rawdata[, 227], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
-recode <- c("Very willing" = 1, "Quite willing" = 2, "Quite unwilling" = 3,
-            "Very unwilling" = 4, "Unknown" = 5) 
+recode <- c("Very unwilling" = 4, "Quite unwilling" = 3, "Quite willing" = 2,
+            "Very willing" = 1, "Unknown" = 5) 
 rawdata[, 228] <- factor(rawdata[, 228], levels = recode,
-                         labels = names(recode))
+                         labels = names(recode), ordered = TRUE)
 
 recode <- c("10 to 19" = 1, "20 to 49" = 2, "50 to 249" = 3, "250 to 499" = 4,
             "500+" = 5) 
@@ -245,3 +248,7 @@ glimpse(rawdata)
 
 # Save data as an R object after 1st round of cleaning
 saveRDS(rawdata, "clean_1.rds")
+
+# Remove all evidence :)
+rm(list = ls())
+detach(package:dplyr, unload = TRUE)
