@@ -1,6 +1,6 @@
 # Analysis of Management Staff Perceptions
 library(dplyr)
-mydata <- readRDS("clean_2.rds")
+mydata <- readRDS("clean_x.rds")
 
 ## Outcome variables
 # Stress - pos 66
@@ -21,12 +21,12 @@ mydata <- readRDS("clean_2.rds")
 # •	Discrimination (for example due to gender, age or ethnicity) (Pos 78 - MM202.10)
 # •	Poor co-operation amongst colleagues(Pos 71 - MM202.3)
 
-summary(mydata[, 66:68])
-stress <- mydata[, 66]
-violence <- mydata[, 67]
-bullying <- mydata[, 68]
+summary(mydata[, 2:4])
+stress <- mydata[, 2]
+violence <- mydata[, 3]
+bullying <- mydata[, 4]
 
-covars <- c(69:78)                # a vector of the covariates...
+covars <- c(5:14)                # a vector of the covariates...
 
 # Univariate plots of designated outcome variables
 barplot(table(stress))
@@ -35,7 +35,7 @@ barplot(table(bullying))
 
 # Bivariate Analyses
 # Contingengy tables (all)
-for (i in 66:68) {
+for (i in 2:4) {
   for (j in covars)
     print(table(mydata[, i], mydata[, j],
                 dnn = c(colnames(mydata[i]), colnames(mydata[j]))))
@@ -57,7 +57,7 @@ oldpar <- par() # plot one outcome per row, one independent variable per column
 par(mar = c(1, 1, 1, 1))
 layout(matrix(c(1:10,11:20, 21:30), nrow = 3, ncol = 10, byrow = TRUE))
 
-for (i in 69:78) {              # iteration of plotting across columns 69 to 78
+for (i in 5:14) {              # iteration of plotting across columns 69 to 78
   check(stress, i)         
   check(violence, i)
   check(bullying, i)
@@ -77,7 +77,7 @@ printtest <- function(x, vec) {
 }
 
 # Calling the function on all variables as earlier designated
-for (i in 66:68) {              # looping the 3 outcome variables
+for (i in 2:4) {              # looping the 3 outcome variables
   printtest(mydata[, i], covars)
 }
 
