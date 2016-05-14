@@ -14,32 +14,38 @@ yesno2 <- function(i) {
 
 # A function for multiple major/minor responses
 majorminor <- function(i) {
-  mm <- c("Major" = 1, "Minor" = 2, "No" = 3, "Unknown" = 4)
-  rawdata[, i] <- factor(rawdata[, i], levels = mm, labels = names(mm))
+  mm <- c("No" = 3, "Minor" = 2, "Major" = 1, "Unknown" = 4)
+  rawdata[, i] <- factor(rawdata[, i], levels = mm, labels = names(mm),
+                         ordered = TRUE)
   rawdata[, i]
 }
 
 # A function for multiple responses raising "concerns"
 concerns <- function(i) {
-  con <- c("Major concern" = 1, "Some concern" = 2,
-           "No concern" = 3, "Unknown" = 4)
+  con <- c("No concern" = 3, "Some concern" = 2,
+           "Major concern" = 1, "Unknown" = 4)
   rawdata[, i] <- factor(rawdata[, i],
-                         levels = con,
+                         levels = con, ordered = TRUE,
                          labels = names(con))
   rawdata[, i]
 }
 
 # A function for the responses with percentage groups
 props <- function(i) {
-  pp <- c("None at all" = 1, "< 20%" = 2, "20% - 40%" = 3, "40% - 60%" = 4, "60% - 80%" = 5, "80% - 100%" = 6, "All" = 7, "Unknown" = 8)
-  rawdata[, i] <- factor(rawdata[, i], levels = pp, labels = names(pp))
+  pp <- c("None at all" = 1, "< 20%" = 2, "20% - 40%" = 3,
+          "40% - 60%" = 4, "60% - 80%" = 5, "80% - 100%" = 6,
+          "All" = 7, "Unknown" = 8)
+  rawdata[, i] <- factor(rawdata[, i], levels = pp, 
+                         ordered = TRUE, labels = names(pp))
   rawdata[, i]
 }
 
 # A function for response on quest for interviews
 interview <- function(i) {
-  inv <- c("Information given" = 1, "Don't know but OK to interview" = 2, "Refused" = 3, "Respondent is this person" = 4)
-  rawdata[, i] <- factor(rawdata[, i], levels = inv, labels = names(inv))
+  inv <- c("Refused" = 3, "Don't know but OK to interview" = 2,
+           "Information given" = 1, "Respondent is this person" = 4)
+  rawdata[, i] <- factor(rawdata[, i], levels = inv, labels = names(inv),
+                         ordered = TRUE)
   rawdata[, i]
 }
 
