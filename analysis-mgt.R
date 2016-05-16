@@ -38,6 +38,12 @@ barplot(table(violence),
 barplot(table(bullying), ylim = c(0, max(table(bullying))),
         main = "Is bullying or harrassment a concern?")
 
+# Goodness of Fit
+chisq.test(table(stress))
+chisq.test(table(violence))
+chisq.test(table(bullying))
+
+
 # Bivariate Analyses
 # Introduce new vectors to represent indices of independent variables
 org_rel <- c(5, 6, 8, 12, 13) # organisational factors
