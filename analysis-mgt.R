@@ -30,9 +30,13 @@ bullying <- mydata[, 4]; attr(bullying, which = "name") <- "BULLYING"
 covars <- c(5:14)                # a vector of the covariates...
 
 # Univariate plots of designated outcome variables
-barplot(table(stress))
-barplot(table(violence))
-barplot(table(bullying))
+barplot(table(stress), ylim = c(0, max(table(stress))),
+  main = "Is work-related stress a concern?")
+barplot(table(violence),
+        ylim = c(0, max(table(violence))),
+        main = "Is violence or threat of violence a concern?")
+barplot(table(bullying), ylim = c(0, max(table(bullying))),
+        main = "Is bullying or harrassment a concern?")
 
 # Bivariate Analyses
 # Introduce new vectors to represent indices of independent variables
