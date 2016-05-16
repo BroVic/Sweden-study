@@ -20,7 +20,6 @@
 # •	Poor co-operation amongst colleagues(Pos 71 - MM202.3)
 
 #################################################################################
-source("helpers.R") # to load objects and functions created for this project
 mydata <- readRDS("clean_x.rds") # load the data
 
 summary(mydata[, 2:4])
@@ -37,7 +36,7 @@ barplot(table(bullying))
 
 # Bivariate Analyses
 # Introduce new vectors to represent indices of independent variables
-org_rel <- c(5, 6, 8, 12, 13) # organisational factor
+org_rel <- c(5, 6, 8, 12, 13) # organisational factors
 emp_rel <- c(7, 9:11, 14)     # employee-related factors
 
 # Build contingengy tables and print to console (all)
@@ -46,6 +45,20 @@ for (i in 2:4) {
     print(table(mydata[, i], mydata[, j],
                 dnn = c(colnames(mydata[i]), colnames(mydata[j]))))
 }
+# run Chi-squared test of independence
+# Write a function 'printtest() to print out Pearson's Chi-Square test results
+# in console.
+printchisq <- function(x, vec) {
+  for (i in vec) {
+    result <- chisq.test(x, mydata[, i])
+    print(result)
+  }
+}
+# Calling the function on all variables as earlier designated
+for (i in 2:4) {              # looping the 3 outcome variables
+  printchisq(mydata[, i], c(org_rel, emp_rel))
+}
+
 
 # Plots:
 # Custom function "multiplot()" to generate multiple charts 
@@ -78,33 +91,5 @@ multiplot(violence, emp_rel)
 multiplot(bullying, org_rel)
 multiplot(bullying, emp_rel)
 
-# run Chi-squared test of independence
-# Write a function 'printtest() to print out Pearson's Chi-Square test results
-# in console.
-printchisq <- function(x, vec) {
-  for (i in vec) {
-    result <- chisq.test(x, mydata[, i])
-    print(result)
-  }
-}
-
-# Calling the function on all variables as earlier designated
-for (i in 2:4) {              # looping the 3 outcome variables
-  printtest(mydata[, i], covars)
-}
-
-# Predictive Modelling
-# Partitioning the dataset
-index <- sample(nrow(mydata), nrow(mydata)*0.2)
-test <- mydata[index, ]
-train <- mydata[-index, ]
-rm(index)
-
-# Save objects
-saveRDS(train, file = "training-data.rds")
-saveRDS(test, "test-data.rds")
-
 # Housekeeping
 rm(list = ls())
-detach(package:dplyr, unload = TRUE)
-save.image()
