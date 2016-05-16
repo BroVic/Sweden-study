@@ -1,5 +1,8 @@
-# functions for the analysis
-#  2 functions for multiple Yes/No responses
+# Various objects and functions built for this project
+
+################################################################################
+# Functions for the analysis
+#  2 very similar functions for multiple Yes/No responses
 yesno1 <- function(i) {
   yn <- c("Yes" = 1, "No" = 2, "Unknown" = 3)
   rawdata[, i] <- factor(rawdata[, i], levels = yn, labels = names(yn))
@@ -148,3 +151,38 @@ var.names <- c("id", "type.org", "type.site", "public.sector", "established",
                "size_10", "hsr_exists", "hsr_int", "sum.femaleEmployees",
                "sum.over50", "est_wei1", "est_wei2", "emp_wei1", "emp_wei2",
                "country_2")
+
+###################################################################################
+# Functions used for plotting charts
+# 1. This is a function built to generate 5 - 6 bar charts in a 2 by 3 display
+multiplot <- function(x, y) {
+  layout(matrix(c(1:3, 4:6, 7, 7, 7), nrow = 3, byrow = TRUE))
+  par(mar = c(1, 3, 3, 1))
+  col <- c("green", "yellow", "red")
+  for (i in y) {
+    ht <- table(x, mydata[, i])
+    barplot(ht,
+            beside = TRUE,
+            legend = FALSE,
+            ylim = c(0, max(ht)),
+            yaxt = "s",
+            col = c("green", "yellow", "red"),
+            xlab = colnames(mydata[i]))
+  }
+  plot(1, type = "n", axes = FALSE, ylab = "")
+  legend("top", inset = 0, legend = levels(x),
+         horiz = FALSE, fill = col, col = col,
+         title = attr(x, which = "name"), bty = "n")
+  layout(matrix(1))
+  oldpar <- par()
+}
+
+###################################################################################
+# Other functions
+# A function doing Chi-squared Test of Independence and printing out result
+printchisq <- function(x, vec) {
+  for (i in vec) {
+    result <- chisq.test(x, mydata[, i])
+    print(result)
+  }
+}

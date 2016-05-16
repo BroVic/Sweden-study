@@ -1,8 +1,6 @@
 # Analysis of Management Staff Perceptions
-library(dplyr)
-mydata <- readRDS("clean_x.rds")
 
-## Outcome variables
+## Outcome variables:
 # Stress - pos 66
 # Violence/threats - pos 67
 # Bullying/harrassment - pos 68
@@ -21,10 +19,14 @@ mydata <- readRDS("clean_x.rds")
 # •	Discrimination (for example due to gender, age or ethnicity) (Pos 78 - MM202.10)
 # •	Poor co-operation amongst colleagues(Pos 71 - MM202.3)
 
+#################################################################################
+source("helpers.R") # to load objects and functions created for this project
+mydata <- readRDS("clean_x.rds") # load the data
+
 summary(mydata[, 2:4])
-stress <- mydata[, 2]
-violence <- mydata[, 3]
-bullying <- mydata[, 4]
+stress <- mydata[, 2]; attr(stress, which = "name") <- "STRESS"
+violence <- mydata[, 3]; attr(violence, which = "name") <- "VIOLENCE"
+bullying <- mydata[, 4]; attr(bullying, which = "name") <- "BULLYING"
 
 covars <- c(5:14)                # a vector of the covariates...
 
@@ -34,7 +36,11 @@ barplot(table(violence))
 barplot(table(bullying))
 
 # Bivariate Analyses
-# Contingengy tables (all)
+# Introduce new vectors to represent indices of independent variables
+org_rel <- c(5, 6, 8, 12, 13) # organisational factor
+emp_rel <- c(7, 9:11, 14)     # employee-related factors
+
+# Build contingengy tables and print to console (all)
 for (i in 2:4) {
   for (j in covars)
     print(table(mydata[, i], mydata[, j],
@@ -42,34 +48,40 @@ for (i in 2:4) {
 }
 
 # Plots:
-# A function to plot barcharts for the respective bivariates
-check <- function(x, pos) {
-  ht <- table(x, mydata[, pos]) 
-  barplot(ht,
-          beside = TRUE,
-          legend = FALSE,
-          ylim = c(0, 8000),
-          yaxt = "n",
-          col = c("blue", "yellow", "red", "green"))
+# Custom function "multiplot()" to generate multiple charts 
+multiplot <- function(x, y) {
+  col <- c("green", "yellow", "red")
+  layout(matrix(c(1:6), nrow = 2, byrow = TRUE))
+  for (i in y) {
+    ht <- table(x, mydata[, i])
+    par(mar = c(5, 3, 2, 1))
+    barplot(ht,
+            beside = TRUE,
+            legend = FALSE,
+            ylim = c(0, max(ht)),
+            yaxt = "s",
+            col = col,
+            xlab = colnames(mydata[i]))
+  }
+  plot(1, type = "n", axes = FALSE, ylab = "", xlab = "")
+  legend("top", inset = 0, legend = levels(x),
+         horiz = FALSE, fill = col, col = col,
+         title = paste("Concern about", attr(x, which = "name")))
+  layout(matrix(1))
 }
 
-oldpar <- par() # plot one outcome per row, one independent variable per column 
-par(mar = c(1, 1, 1, 1))
-layout(matrix(c(1:10,11:20, 21:30), nrow = 3, ncol = 10, byrow = TRUE))
-
-for (i in 5:14) {              # iteration of plotting across columns 69 to 78
-  check(stress, i)         
-  check(violence, i)
-  check(bullying, i)
-}
-layout(matrix(1))               # return graphics device to former state
-par(oldpar)
-rm(oldpar)
+# Generating plots across the variable groupings and jointly displaying them
+multiplot(stress, org_rel)
+multiplot(stress, emp_rel)
+multiplot(violence, org_rel)
+multiplot(violence, emp_rel)
+multiplot(bullying, org_rel)
+multiplot(bullying, emp_rel)
 
 # run Chi-squared test of independence
 # Write a function 'printtest() to print out Pearson's Chi-Square test results
 # in console.
-printtest <- function(x, vec) {
+printchisq <- function(x, vec) {
   for (i in vec) {
     result <- chisq.test(x, mydata[, i])
     print(result)
