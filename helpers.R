@@ -156,25 +156,24 @@ var.names <- c("id", "type.org", "type.site", "public.sector", "established",
 # Functions used for plotting charts
 # 1. This is a function built to generate 5 - 6 bar charts in a 2 by 3 display
 multiplot <- function(x, y) {
-  layout(matrix(c(1:3, 4:6, 7, 7, 7), nrow = 3, byrow = TRUE))
-  par(mar = c(1, 3, 3, 1))
   col <- c("green", "yellow", "red")
+  layout(matrix(c(1:6), nrow = 2, byrow = TRUE))
   for (i in y) {
     ht <- table(x, mydata[, i])
+    par(mar = c(5, 3, 2, 1))
     barplot(ht,
             beside = TRUE,
             legend = FALSE,
             ylim = c(0, max(ht)),
             yaxt = "s",
-            col = c("green", "yellow", "red"),
+            col = col,
             xlab = colnames(mydata[i]))
   }
-  plot(1, type = "n", axes = FALSE, ylab = "")
+  plot(1, type = "n", axes = FALSE, ylab = "", xlab = "")
   legend("top", inset = 0, legend = levels(x),
          horiz = FALSE, fill = col, col = col,
-         title = attr(x, which = "name"), bty = "n")
+         title = paste("Concern about", attr(x, which = "name")))
   layout(matrix(1))
-  oldpar <- par()
 }
 
 ###################################################################################
