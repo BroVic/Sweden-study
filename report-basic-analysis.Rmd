@@ -1,0 +1,165 @@
+---
+title: "Basic analyses"
+author: "Victor Ordu"
+date: "17 May 2016"
+output: word_document
+---
+
+After wrangling and munging the data, this is what they now look like:
+```{r, echo=FALSE}
+mydata <- readRDS("clean_x.rds")
+```
+
+```{r}
+dplyr::glimpse(mydata)
+```
+
+With regard to the questions of interest, the variables of we're looking at are in columns 2 - 14 of this dataset. (The current numbering is due to the removal of 64 columns earlier to minimize data loss from dropping of records with missing values). We re now left with 6,219 observations and 35 variables.
+```{r}
+dim(mydata)
+```
+
+```{r, echo=FALSE}
+stress <- mydata[, 2]; attr(stress, which = "name") <- "STRESS"
+violence <- mydata[, 3]; attr(violence, which = "name") <- "VIOLENCE"
+bullying <- mydata[, 4]; attr(bullying, which = "name") <- "BULLYING"
+```
+
+## Univariate plots of designated outcome variables
+```{r}
+barplot(table(stress), ylim = c(0, max(table(stress))),
+  main = "Is work-related stress a concern?")
+barplot(table(violence),
+        ylim = c(0, max(table(violence))),
+        main = "Is violence or threat of violence a concern?")
+barplot(table(bullying), ylim = c(0, max(table(bullying))),
+        main = "Is bullying or harrassment a concern?")
+```
+
+Goodness of Fit was tested for the 3 variables...
+```{r}
+chisq.test(table(stress))
+chisq.test(table(violence))
+chisq.test(table(bullying))
+```
+
+One will observe that the form of the 3 bar charts are virtually identical, as are their p-values.
+
+## Bivariate Analyses
+```{r}
+# Introduce new vectors to represent indices of independent variables
+org_rel <- c(5, 6, 8, 12, 13) # organisational factors
+emp_rel <- c(7, 9:11, 14)     # employee-related factors
+
+```
+
+Here I wrote a function that allows us to create multiple charts and group them in the categories you created.
+```{r}
+multiplot <- function(x, y) {
+  col <- c("green", "yellow", "red")
+  layout(matrix(c(1:6), nrow = 2, byrow = TRUE))
+  for (i in y) {
+    ht <- table(x, mydata[, i])
+    par(mar = c(5, 3, 2, 1))
+    barplot(ht,
+            beside = TRUE,
+            legend = FALSE,
+            ylim = c(0, max(ht)),
+            yaxt = "s",
+            col = col,
+            xlab = colnames(mydata[i]))
+  }
+  plot(1, type = "n", axes = FALSE, ylab = "", xlab = "")
+  legend("top", inset = 0, legend = levels(x),
+         horiz = FALSE, fill = col, col = col,
+         title = paste("Concern about", attr(x, which = "name")))
+  layout(matrix(1))
+}
+```
+
+
+The function yields these multiple plots:
+
+** Work-related stress vs. organisational factors**
+```{r}
+multiplot(stress, org_rel)
+```
+
+**Work-related stress vs. employee-related issues**
+```{r}
+multiplot(stress, emp_rel)
+```
+
+*The code for the other multiple plots is embedded in this document but hidden*
+
+**Violence vs. organisational factors**
+```{r, echo=FALSE}
+multiplot(violence, org_rel)
+```
+
+**Violence vs. employee-related issues**
+```{r, echo=FALSE}
+multiplot(violence, emp_rel)
+```
+
+**Bullying vs. employee-related factors**
+```{r, echo=FALSE}
+multiplot(bullying, org_rel)
+```
+
+**Bullying vs. employee-related issues**
+```{r, echo=FALSE}
+multiplot(bullying, emp_rel)
+```
+
+
+```{r}
+# create a vector of p-values from index of variables and print as a matrix
+printchisq <- function(outcome, cat) {
+  len <- length(cat)
+  result <- rep(NA, len)
+  for (i in 1:len) {
+    n <- cat[i]
+    tab <- table(outcome, mydata[, n])
+    result[i] <- chisq.test(tab)$p.value
+  }
+  mat <- cbind("variable" = names(mydata[cat]), 
+      "p-value" = result)
+  print(mat)
+}
+```
+
+Now printing p-values for the 2 categories against the outcome *"work-related stress"*
+```{r, echo=FALSE}
+printchisq(stress, org_rel)
+printchisq(stress, emp_rel)
+```
+
+against *"violence"*...
+```{r, echo=FALSE}
+printchisq(violence, org_rel)
+printchisq(violence, emp_rel)
+```
+
+... and against *"bullying/harrassment"*
+```{r, echo=FALSE}
+printchisq(bullying, org_rel)
+printchisq(bullying, emp_rel)
+```
+
+
+## Overview
+The outcome variables show a statistically significant concern among respondents for work-related stress, violence and bullying/harrassment in the workplace (p < 0.001). This overall pattern, at this level of the analysis, did not seem to apparently change, as can be seen in the similarity of shape of these simple visualizations. However, statistical analysis did show that there are significant associations between the 3 outcome variables, on one hand, and the 10 independent variables, on the other, which were subdivided into 2 broad categories of organisational factors and employee-related issues. Note, again, that the multiple plots were drawn along these lines.
+
+P-values for the independence test indicate associations amongst most of the outcome-independent variable pairs, but it is noteworthy that p-values are high with the "bullying"" outcome. With this kind of a picture, I don't know whether you are still keen on merging the "violence" and "bullying" variables. We could try it later on, but for now I think we should proceed examine the data just a little bit further.
+
+
+*This document is a draft and the outputs here are still in a raw form, requiring a lot of refinement. The contents are being shared purely for the purpose of communicating progress.*
+
+
+
+
+
+
+**This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see** <http://rmarkdown.rstudio.com>.
+
