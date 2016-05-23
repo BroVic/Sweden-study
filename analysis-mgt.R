@@ -1,23 +1,26 @@
 # Analysis of Management Staff Perceptions
 
+# Having reduced the no. of variable, new positions are assigned, where new
+# position = old position - 64 e.g Stress (pos 66) becomes pos 2 in the dataframe
+
 ## Outcome variables:
-# Stress - pos 66
-# Violence/threats - pos 67
-# Bullying/harrassment - pos 68
+# Stress - pos 2
+# Violence/threats - pos 3
+# Bullying/harrassment - pos 4
 
 ## i. Organisational Factors 
-# •	Time pressure (Pos  69 - MM202.1)
-# •	Poor communication between management and employees (Pos 70 - MM202.2)
-# •	Long or irregular working hours (Pos 76 - MM202.8)
-# •	An unclear human resources policy (Pos 77 - MM202.9)
-# •	Lack of employee control in organising their work(Pos 72 - MM202.4)
+# •	Time pressure (Pos  5 - MM202.1)
+# •	Poor communication between management and employees (Pos 6 - MM202.2)
+# •	Long or irregular working hours (Pos 12 - MM202.8)
+# •	An unclear human resources policy (Pos 13 - MM202.9)
+# •	Lack of employee control in organising their work(Pos 8 - MM202.4)
 
 ## ii. Employee related i.e. Factors at individual & group (interpersonal relationship among colleagues) level 
-# •	Job insecurity(Pos 73 - MM202.5)
-# •	Having to deal with difficult customers, patients, pupils etc. (Pos 74 - MM202.6)
-# •	Problems in supervisor - employee relationships(Pos 75 - MM202.7)
-# •	Discrimination (for example due to gender, age or ethnicity) (Pos 78 - MM202.10)
-# •	Poor co-operation amongst colleagues(Pos 71 - MM202.3)
+# •	Job insecurity(Pos 9 - MM202.5)
+# •	Having to deal with difficult customers, patients, pupils etc. (Pos 10 - MM202.6)
+# •	Problems in supervisor - employee relationships(Pos 11 - MM202.7)
+# •	Discrimination (for example due to gender, age or ethnicity) (Pos 14 - MM202.10)
+# •	Poor co-operation amongst colleagues(Pos 7 - MM202.3)
 
 #################################################################################
 mydata <- readRDS("clean_x.rds") # load the data
