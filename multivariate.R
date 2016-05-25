@@ -2,13 +2,17 @@
 # Advanced Analyses
 library(MASS)
 library(Hmisc)
-library(ggplot2)
+library(tidyr)
 
-mydata<- readRDS("clean_x.rds")
 
-col <- c("green", "yellow", "red")
+data<- readRDS("clean_x.rds")
+mydata <- data[, c(2, 5, 6, 12, 13, 8)] # extract variables of interest
+
+
 # Run sample code for visualization and analyses
+col <- c("green", "yellow", "red")
 spineplot(concern.stress ~ risks.time, data = mydata, col = col)
+
 vcd::mosaic(concern.stress ~ 
               risks.time+risks.communication+risks.unclearPolicy,
             data = mydata, shade = TRUE,
@@ -18,25 +22,29 @@ x
 vcd::assoc(x)
 
 # Partition the dataset
-index <- createDataPartition(mydata$concern.stress, times = 1, p = .8,
+index <- caret::createDataPartition(mydata$concern.stress, times = 1, p = .8,
                              list = FALSE)
 train <- mydata[index, ]
 test <- mydata[-index, ]
 rm(index)
 
-# Logistic regression
-glm.fitted <- glm(concern.stress ~ risks.time + risks.communication + 
-                    risks.lackemployeecontrol + risks.unclearPolicy + 
-                    risks.workinghours, data = mydata, family = "binomial")
-summary(glm.fitted)
+# Set the formula
+form <- concern.stress ~ risks.time + risks.communication + 
+  risks.lackemployeecontrol + risks.unclearPolicy + 
+  risks.workinghours
 
 
-# Proportional odds logistic regression
-# Subset, selecting the variables of interest
-mydata <- mydata[, c(2, 5, 6, 12, 13, 8)]
-ordered.fit <- polr(concern.stress ~ risks.time + risks.communication + 
-                            risks.lackemployeecontrol + risks.unclearPolicy + 
-                            risks.workinghours, data = mydata, Hess = TRUE)
+# Loglinear modelling
+loglm.fitted <- loglm(formula = form, data = train)
+loglm.fitted
+
+
+# Adjacent category logit model?
+VGAM::vgam(formula = form, data = train, family = propodds)
+
+
+# Proportional odds logistic regression?
+ordered.fit <- polr(formula = form, data = mydata, Hess = TRUE)
 
 summary(ordered.fit)
 
@@ -82,30 +90,23 @@ trial[, 4] <- trial[, 4] - trial[, 3]
 trial[, 3] <- trial[, 3] - trial[, 3]
 trial
 
-plot(trial, which = 1:3, pch = 1:3, xlab = "logit", main = " ",
+plot(trial, which = 1:3, pch = 1:3, xlab = "logit", main = "",
      xlim = range(trial[, 3:4]))
 
-data.regr <- data.frame(risks.time = rep(0:1, 1200),
-                        risks.communication = rep(0:1, 1200),
-                        risks.lackemployeecontrol = rep(0:1, 1200),
-                        risks.unclearPolicy = rep(0:1, 1200),
-                        risks.workinghours = rep(0:1, 1200))
-data.regr <- cbind(data.regr, predict(ordered.fit, data.regr, type = "probs"))
-head(data.regr)
+data.pred <- data.frame(risks.time = rep(c("Yes", "No"), 600),
+                        risks.communication = rep(c("Yes", "No"), 600),
+                        risks.lackemployeecontrol = rep(c("Yes", "No"), 600),
+                        risks.unclearPolicy = rep(c("Yes", "No"), 600),
+                        risks.workinghours = rep(c("Yes", "No"), 600))
+data.pred <- cbind(data.pred, predict(ordered.fit, data.pred, type = "probs"))
+head(data.pred)
 
 # Reshaping the dataframe
-tidy.regr <- data.regr %>%
-  tidyr::gather(category, Probability, `No concern`:`Major concern`,
+data.pred <- data.regr %>%
+  gather(category, probability, `No concern`:`Major concern`,
                 factor_key = TRUE)
+head(data.pred)
 
-# Boxplot of the predicted probabilities
-png("plots/probplot-stress_orgvars.png")
-layout(matrix(1:6, nrow = 2, byrow = TRUE))
-for (i in 2:6) {
-boxplot(tidy.regr$Probability ~ tidy.regr[, i],
-        col = c("pink", "blue"))
-}
-layout(matrix(1))
-dev.off()
 
-# End
+
+# End 
