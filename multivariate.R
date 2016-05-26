@@ -8,9 +8,25 @@ library(tidyr)
 data<- readRDS("clean_x.rds")
 mydata <- data[, c(2, 5, 6, 12, 13, 8)] # extract variables of interest
 
+# Partition the dataset
+index <- caret::createDataPartition(mydata$concern.stress, times = 1, p = .8,
+                                    list = FALSE)
+train <- mydata[index, ]
+test <- mydata[-index, ]
+rm(index)
 
-# Run sample code for visualization and analyses
+# group the predictors
+orgFormula <- concern.stress ~ risks.time + risks.communication + risks.lackemployeecontrol + 
+  risks.unclearPolicy +  risks.workinghours         # organisational issues
+
+# Build a multi-way contingency table
+ftable(xtabs(~ concern.stress + risks.time + 
+               risks.communication + risks.lackemployeecontrol + 
+               risks.unclearPolicy + risks.workinghours, data = train))
+
+# Some visualizations
 col <- c("green", "yellow", "red")
+# Draw a spine plot
 spineplot(concern.stress ~ risks.time, data = mydata, col = col)
 
 vcd::mosaic(concern.stress ~ 
@@ -21,30 +37,8 @@ x <- table(mydata$concern.stress, mydata$risks.time)
 x
 vcd::assoc(x)
 
-# Partition the dataset
-index <- caret::createDataPartition(mydata$concern.stress, times = 1, p = .8,
-                             list = FALSE)
-train <- mydata[index, ]
-test <- mydata[-index, ]
-rm(index)
-
-# Set the formula
-form <- concern.stress ~ risks.time + risks.communication + 
-  risks.lackemployeecontrol + risks.unclearPolicy + 
-  risks.workinghours
-
-
-# Loglinear modelling
-loglm.fitted <- loglm(formula = form, data = train)
-loglm.fitted
-
-
-# Adjacent category logit model?
-VGAM::vgam(formula = form, data = train, family = propodds)
-
-
 # Proportional odds logistic regression?
-ordered.fit <- polr(formula = form, data = mydata, Hess = TRUE)
+ordered.fit <- polr(formula = orgFormula, data = mydata, Hess = TRUE)
 
 summary(ordered.fit)
 
@@ -102,11 +96,13 @@ data.pred <- cbind(data.pred, predict(ordered.fit, data.pred, type = "probs"))
 head(data.pred)
 
 # Reshaping the dataframe
-data.pred <- data.regr %>%
+data.pred <- data.pred %>%
   gather(category, probability, `No concern`:`Major concern`,
                 factor_key = TRUE)
 head(data.pred)
 
 
 
+Vectorize(detach)(name = paste0("package:",c("MASS", "Hmisc", "lattice", "survival", "Formula", "ggplot2", "tidyr")), character.only = TRUE)
+rm(list = ls())
 # End 
