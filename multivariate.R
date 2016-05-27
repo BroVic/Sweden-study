@@ -4,8 +4,6 @@ library(MASS)
 library(Hmisc)
 library(tidyr)
 library(vcd)
-library(vcdExtra)
-library(gmodels)
 
 data<- readRDS("clean_x.rds")
 mydata <- data[, c(2, 5, 6, 12, 13, 8)] # extract variables of interest
@@ -33,7 +31,7 @@ covars <- ~ risks.time + risks.communication + risks.lackemployeecontrol +
 (array <- xtabs(covars, data = mydata))
 (flat <- ftable(array))
 
-CMHtest(flat)                      # Cochran-Mantel-Haenszel test
+vcdExtra::CMHtest(flat)                      # Cochran-Mantel-Haenszel test
 
 # Visualize
 doubledecker(orgFormula, data = mydata, main = "Doubledecker plot of the data")
@@ -116,13 +114,6 @@ data.pred <- data.pred %>%
   gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
 head(data.pred)
 
-
-# cleaning up search path and the workspace
-Vectorize(detach)(name = paste0("package:",
-                                c("MASS", "Hmisc", "lattice", "survival",
-                                  "Formula", "ggplot2", "tidyr", "vcd", "grid",
-                                  "vcdExtra", "gnm")),
-                  character.only = TRUE)
 rm(list = ls())
 
 # End 
