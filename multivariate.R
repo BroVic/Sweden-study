@@ -3,7 +3,9 @@
 library(MASS)
 library(Hmisc)
 library(tidyr)
-
+library(vcd)
+library(vcdExtra)
+library(gmodels)
 
 data<- readRDS("clean_x.rds")
 mydata <- data[, c(2, 5, 6, 12, 13, 8)] # extract variables of interest
@@ -16,25 +18,30 @@ train <- mydata[index, ]
 test <- mydata[-index, ]
 rm(index)
 
-# Build array and multi-way contingency table
-covars <- ~ risks.time + risks.communication + risks.lackemployeecontrol + 
-             risks.unclearPolicy + risks.workinghours + concern.stress
-array <- xtabs(covars, data = train); rm(covars)
-array
-ftable(array)
+# define main objects to be used in modelling and analysis
+# Formula object with outcome vs. predictors
+orgFormula <- concern.stress ~ risks.time + risks.communication + 
+  risks.lackemployeecontrol + risks.unclearPolicy + 
+  risks.workinghours         # organisational issues
 
+# Formula object for multi-way association
+covars <- ~ risks.time + risks.communication + risks.lackemployeecontrol + 
+  risks.unclearPolicy + risks.workinghours + concern.stress
+
+
+# Build array and multi-way contingency table
+(array <- xtabs(covars, data = mydata))
+(flat <- ftable(array))
+
+CMHtest(flat)                      # Cochran-Mantel-Haenszel test
 
 # Visualize
-vcd::mosaic(array)
-vcd::assoc(array)
+doubledecker(orgFormula, data = mydata, main = "Doubledecker plot of the data")
 rm(array, covars)
 
-# Proportional odds logistic regression?
-# Prep: Define the formula for modelling
-orgFormula <- concern.stress ~ risks.time + risks.communication + risks.lackemployeecontrol + 
-  risks.unclearPolicy +  risks.workinghours         # organisational issues
 
-ordered.fit <- polr(formula = orgFormula, data = mydata, Hess = TRUE)
+# Proportional odds logit model
+ordered.fit <- polr(formula = orgFormula, data = train, Hess = TRUE)
 summary(ordered.fit)
 
 # Tabulate coefficients 
@@ -66,7 +73,7 @@ props <- function(y) {
     'Y >= 3' = qlogis(mean(y >= 3)))
 }
 
-trial <- with(mydata,
+trial <- with(train,
                summary(as.numeric(concern.stress) ~ risks.time + 
                          risks.communication + risks.lackemployeecontrol + 
                          risks.unclearPolicy + risks.workinghours, fun = props))
@@ -76,12 +83,12 @@ trial
 glm(I(as.numeric(concern.stress) >= 2) ~ risks.time + 
       risks.communication + risks.lackemployeecontrol + 
       risks.unclearPolicy + risks.workinghours, family = "binomial",
-    data = mydata)
+    data = train)
 
 glm(I(as.numeric(concern.stress) >= 3) ~ risks.time + 
       risks.communication + risks.lackemployeecontrol + 
       risks.unclearPolicy + risks.workinghours, family = "binomial",
-    data = mydata)
+    data = train)
 
 
 trial[, 4] <- trial[, 4] - trial[, 3]
@@ -96,24 +103,26 @@ rm(trial)
 
 # Fit the model if assumption is met
 # Create a dummy dataframe to predict probabilities
-kays <- rep(c("Yes", "No"), 600)
-data.pred <- data.frame(risks.time = kays,
-                        risks.communication = kays,
-                        risks.lackemployeecontrol = kays,
-                        risks.unclearPolicy = kays,
-                        risks.workinghours = kays)
+ks <- rep(c("Yes", "No"), 600)
+data.pred <- as.data.frame(matrix(rep(ks, 5), ncol = 5, byrow = FALSE))
+colnames(data.pred) <- c("risks.time", "risks.communication",
+                         "risks.lackemployeecontrol", "risks.unclearPolicy",
+                         "risks.workinghours")
 data.pred <- cbind(data.pred, predict(ordered.fit, data.pred, type = "probs"))
 head(data.pred)
 
 # Tidy the dataframe
 data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`,
-                factor_key = TRUE)
+  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
 head(data.pred)
 
 
 # cleaning up search path and the workspace
-Vectorize(detach)(name = paste0("package:",c("MASS", "Hmisc", "lattice", "survival", "Formula", "ggplot2", "tidyr")), character.only = TRUE)
+Vectorize(detach)(name = paste0("package:",
+                                c("MASS", "Hmisc", "lattice", "survival",
+                                  "Formula", "ggplot2", "tidyr", "vcd", "grid",
+                                  "vcdExtra", "gnm")),
+                  character.only = TRUE)
 rm(list = ls())
 
 # End 
