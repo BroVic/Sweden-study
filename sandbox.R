@@ -15,6 +15,7 @@ library("MASS")
 train <- readRDS("training-data.rds")
 test <- readRDS("test-data.rds")
 dplyr::glimpse(train)
+
 train.fit <- lda(concern.stress~risks.time+risks.workinghours+risks.unclearPolicy+risks.lackemployeecontrol, data = mydata)
 
 
@@ -25,3 +26,13 @@ physical.threat <- table(mydata$concern.bullying, mydata$concern.violence)
 barplot(physical.threat, beside = TRUE, legend = TRUE, xlab = "Bullying",
         legend.text = TRUE)
 chisq.test(physical.threat)
+
+
+
+
+# Partition the dataset
+index <- caret::createDataPartition(mydata$concern.stress, times = 1, p = .8,
+                                    list = FALSE)
+train <- mydata[index, ]
+test <- mydata[-index, ]
+rm(index)
