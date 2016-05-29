@@ -2,19 +2,10 @@
 # Advanced Analyses
 library(MASS)
 library(Hmisc)
-library(tidyr)
-library(vcd)
 
 data<- readRDS("clean_x.rds")
 mydata <- data[, c(2, 5, 6, 12, 13, 8)] # extract variables of interest
 rm(data)
-
-# Partition the dataset
-index <- caret::createDataPartition(mydata$concern.stress, times = 1, p = .8,
-                                    list = FALSE)
-train <- mydata[index, ]
-test <- mydata[-index, ]
-rm(index)
 
 # define main objects to be used in modelling and analysis
 # Formula object with outcome vs. predictors
@@ -22,7 +13,7 @@ orgFormula <- concern.stress ~ risks.time + risks.communication +
   risks.lackemployeecontrol + risks.unclearPolicy + 
   risks.workinghours         # organisational issues
 
-# Formula object for multi-way association
+# Formula object for multi-way tabulation/visualization
 covars <- ~ risks.time + risks.communication + risks.lackemployeecontrol + 
   risks.unclearPolicy + risks.workinghours + concern.stress
 
@@ -34,12 +25,13 @@ covars <- ~ risks.time + risks.communication + risks.lackemployeecontrol +
 vcdExtra::CMHtest(flat)                      # Cochran-Mantel-Haenszel test
 
 # Visualize
-doubledecker(orgFormula, data = mydata, main = "Doubledecker plot of the data")
+vcd::doubledecker(orgFormula, 
+                  data = mydata, main = "Doubledecker plot of the data")
 rm(array, covars)
 
 
 # Proportional odds logit model
-ordered.fit <- polr(formula = orgFormula, data = train, Hess = TRUE)
+ordered.fit <- polr(formula = orgFormula, data = mydata, Hess = TRUE)
 summary(ordered.fit)
 
 # Tabulate coefficients 
@@ -57,6 +49,9 @@ CI <- confint(ordered.fit)
 CI
 confint.default(ordered.fit)
 
+# Plot the probabilities
+plot(allEffects(ordered.fit))
+
 # Obtain the Odds Ratio and match with confidence intervals
 odd.ratio <- exp(coef(ordered.fit))
 odd.ratio
@@ -64,14 +59,15 @@ odd.ratio
 # Tabulate O.R. and CI
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 rm(odd.ratio, CI, odds.tabl)
-# --- Evaluating the assumption of proportional odds ---
+
+# --- Evaluating the assumption of proportional odds ---#
 props <- function(y) {
   c('Y >= 1' = qlogis(mean(y >= 1)),
     'Y >= 2' = qlogis(mean(y >= 2)),
     'Y >= 3' = qlogis(mean(y >= 3)))
 }
 
-trial <- with(train,
+trial <- with(mydata,
                summary(as.numeric(concern.stress) ~ risks.time + 
                          risks.communication + risks.lackemployeecontrol + 
                          risks.unclearPolicy + risks.workinghours, fun = props))
@@ -81,12 +77,12 @@ trial
 glm(I(as.numeric(concern.stress) >= 2) ~ risks.time + 
       risks.communication + risks.lackemployeecontrol + 
       risks.unclearPolicy + risks.workinghours, family = "binomial",
-    data = train)
+    data = mydata)
 
 glm(I(as.numeric(concern.stress) >= 3) ~ risks.time + 
       risks.communication + risks.lackemployeecontrol + 
       risks.unclearPolicy + risks.workinghours, family = "binomial",
-    data = train)
+    data = mydata)
 
 
 trial[, 4] <- trial[, 4] - trial[, 3]
@@ -98,11 +94,12 @@ plot(trial, which = 1:3, pch = 1:3, xlab = "logit", main = "",
      xlim = range(trial[, 3:4]))
 rm(trial)
 
+# --- Done with assumption testing ---#
 
 # Fit the model if assumption is met
 # Create a dummy dataframe to predict probabilities
 ks <- rep(c("Yes", "No"), 600)
-data.pred <- as.data.frame(matrix(rep(ks, 5), ncol = 5, byrow = FALSE))
+data.pred <- as.data.frame(matrix(rep(ks, 5), ncol = 5, byrow = FALSE)); rm(ks)
 colnames(data.pred) <- c("risks.time", "risks.communication",
                          "risks.lackemployeecontrol", "risks.unclearPolicy",
                          "risks.workinghours")
@@ -110,8 +107,8 @@ data.pred <- cbind(data.pred, predict(ordered.fit, data.pred, type = "probs"))
 head(data.pred)
 
 # Tidy the dataframe
-data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+data.pred <- tidyr::gather(data.pred, category, probability,
+                           `No concern`:`Major concern`, factor_key = TRUE)
 head(data.pred)
 
 rm(list = ls())
