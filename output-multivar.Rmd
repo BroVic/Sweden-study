@@ -8,57 +8,44 @@ output: word_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-## This is a work in progress
 
-**The source file for this analysis is at multivariate-analysis.R**
-```{r, echo=FALSE}
+
+Loading the dataset and some required R packages
+```{r, warning=FALSE}
+library(tidyr)
 library(MASS)
 library(Hmisc)
-library(tidyr)
-
 
 data<- readRDS("clean_x.rds")
 mydata <- data[, c(2, 5, 6, 12, 13, 8)] # extract variables of interest
 rm(data)
+```
 
-# Partition the dataset
-index <- caret::createDataPartition(mydata$concern.stress, times = 1, p = .8,
-                                    list = FALSE)
-train <- mydata[index, ]
-test <- mydata[-index, ]
-rm(index)
-
-# Build array and multi-way contingency table
+Next, we build an array and a multi-way contingency table
+```{r, echo=FALSE}
 covars <- ~ risks.time + risks.communication + risks.lackemployeecontrol + 
              risks.unclearPolicy + risks.workinghours + concern.stress
-array <- xtabs(covars, data = train); rm(covars)
-array
-print(ftable(array))
+array <- xtabs(covars, data = mydata)
+(flat <- ftable(array))
 ```
 
-Visualize this arrangement
-```{r, echo=FALSE}
-vcd::mosaic(array)
-```
-
-```{r, echo=FALSE}
-vcd::assoc(array)
-rm(array, covars)
-```
-**Proportional odds logistic regression**
-# Prep: Define the formula for modelling
+Visualize this arrangement using a doubledecker plot.
 ```{r, echo=FALSE}
 orgFormula <- concern.stress ~ risks.time + risks.communication + risks.lackemployeecontrol + 
-  risks.unclearPolicy +  risks.workinghours         # organisational issues
+  risks.unclearPolicy +  risks.workinghours 
+vcd::doubledecker(orgFormula, 
+                  data = mydata, main = "Doubledecker plot of the data")
 ```
-```{r}
+
+We also run a Cochran-Mantel-Haenstzl test to test for associations amongst the different elements of the above table and chart.
+```{r, echo=FALSE}
+vcdExtra::CMHtest(flat)                      # Cochran-Mantel-Haenszel test
+```
+
+**Modelling the data**
+```{r, echo=FALSE}
 ordered.fit <- polr(formula = orgFormula, data = mydata, Hess = TRUE)
-summary(ordered.fit)
-
-# Tabulate coefficients 
 table.coef <- coef(summary(ordered.fit))
-table.coef
-
 # calculate and store p-values
 pval <- pnorm(abs(table.coef[, "t value"]), lower.tail = FALSE) * 2
 table.coef <- cbind(table.coef, "p-value" = pval)
@@ -66,25 +53,24 @@ table.coef
 rm(table.coef, pval)
 ```
 
-Calculate 95% confidence intervals
-```{r}
+
+Calculate the Odds Ratio with 95% confidence intervals
+```{r, echo=FALSE}
 CI <- confint(ordered.fit)
-CI
-confint.default(ordered.fit)
-```
-Obtain the Odds Ratio and match with confidence intervals
-```{r}
 odd.ratio <- exp(coef(ordered.fit))
-odd.ratio
-
 # Tabulate O.R. and CI
-(odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
+odds.tabl <- cbind("O.R." = odd.ratio, exp(CI))
+odds.tabl
 ```
-```{r} rm(odd.ratio, CI, odds.tabl)```
 
+Compare the fit with an intercept-only model
+```{r, echo=FALSE}
+nullmodel <- polr(concern.stress ~ 1, data = mydata, Hess = TRUE)
+anova(nullmodel, ordered.fit)
+```
 
 Assessing the model
-```{r}
+```{r, comment="##"}
 # --- Evaluating the assumption of proportional odds ---
 # A function to plot at class cut-off points
 props <- function(y) {
@@ -100,6 +86,7 @@ trial <- with(mydata,
 trial
 ```
 
+This step also checks the fit of the model by converting the outcome to binary variables at the respective class boundaries and fitting to the logistic regression model.
 ```{r}
 # Treat outcome as a binary variable via "cut-off" points to test assumption
 glm(I(as.numeric(concern.stress) >= 2) ~ risks.time + 
@@ -113,32 +100,30 @@ glm(I(as.numeric(concern.stress) >= 3) ~ risks.time +
     data = mydata)
 ```
 
-```{r}
+Tabulate and plot the logits
+```{r, echo=TRUE}
 trial[, 4] <- trial[, 4] - trial[, 3]
 trial[, 3] <- trial[, 3] - trial[, 3]
 trial
-```
-Plot the logits
-```{r}
+
 plot(trial, which = 1:3, pch = 1:3, xlab = "logit", main = "",
      xlim = range(trial[, 3:4]))
 ```
-```{r}
-rm(trial)
-```
 
-Fit the model if assumption is met
+Predict the probabilites for the outcome variable
 ```{r}
 # Create a dummy dataframe to predict probabilities
-kays <- rep(c("Yes", "No"), 600)
-data.pred <- data.frame(risks.time = kays,
-                        risks.communication = kays,
-                        risks.lackemployeecontrol = kays,
-                        risks.unclearPolicy = kays,
-                        risks.workinghours = kays)
+ks <- rep(c("Yes", "No"), 600)
+data.pred <- data.frame(risks.time = ks,
+                        risks.communication = ks,
+                        risks.lackemployeecontrol = ks,
+                        risks.unclearPolicy = ks,
+                        risks.workinghours = ks)
 data.pred <- cbind(data.pred, predict(ordered.fit, data.pred, type = "probs"))
 head(data.pred)
 ```
+
+We now rearrange the dataframe so that we have can plot the probabilities against the variables
 ```{r}
 # Tidy the dataframe
 data.pred <- data.pred %>%
@@ -147,9 +132,9 @@ data.pred <- data.pred %>%
 head(data.pred)
 ```
 
+Now, plot the predicted probabilities 
 ```{r, echo=FALSE}
-# cleaning up search path and the workspace
-Vectorize(detach)(name = paste0("package:",c("MASS", "Hmisc", "lattice", "survival", "Formula", "ggplot2", "tidyr")), character.only = TRUE)
-rm(list = ls())
+plot.new()
+box()
 ```
 **End**
