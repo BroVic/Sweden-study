@@ -50,7 +50,7 @@ CI
 confint.default(ordered.fit)
 
 # Plot the probabilities
-plot(allEffects(ordered.fit))
+plot(effects::allEffects(ordered.fit))
 
 # Obtain the Odds Ratio and match with confidence intervals
 odd.ratio <- exp(coef(ordered.fit))
@@ -59,6 +59,11 @@ odd.ratio
 # Tabulate O.R. and CI
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 rm(odd.ratio, CI, odds.tabl)
+
+# Compare the fit with an intercept-only model
+nullmodel <- polr(concern.stress ~ 1, data = mydata, Hess = TRUE)
+deviance(nullmodel) - deviance(ordered.fit)
+df.residual(nullmodel) - df.residual(ordered.fit)
 
 # --- Evaluating the assumption of proportional odds ---#
 props <- function(y) {
