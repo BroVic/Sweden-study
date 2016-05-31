@@ -116,6 +116,32 @@ data.pred <- tidyr::gather(data.pred, category, probability,
                            `No concern`:`Major concern`, factor_key = TRUE)
 head(data.pred)
 
+# Plot the probabilities
+p1 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.time,
+                 group = risks.time)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+p2 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.communication,
+                 group = risks.communication)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+p3 <- ggplot(data = data.pred,
+             aes(x = category, y = probability,
+                 colour = risks.lackemployeecontrol,
+                 group = risks.lackemployeecontrol)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+p4 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.unclearPolicy,
+                 group = risks.unclearPolicy)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+p5 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.workinghours,
+                 group = risks.workinghours)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+
+source("multiplot.R") # from http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
+multiplot(p1, p2, p3, p4, p5, cols = 3)
+
 rm(list = ls())
 
 # End 

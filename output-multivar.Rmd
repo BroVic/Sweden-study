@@ -8,10 +8,10 @@ output: word_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+# DRAFT
 
 Loading the dataset and some required R packages
-```{r, warning=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(tidyr)
 library(MASS)
 library(Hmisc)
@@ -70,7 +70,7 @@ anova(nullmodel, ordered.fit)
 ```
 
 Assessing the model
-```{r, comment="##"}
+```{r, comment=">"}
 # --- Evaluating the assumption of proportional odds ---
 # A function to plot at class cut-off points
 props <- function(y) {
@@ -134,7 +134,29 @@ head(data.pred)
 
 Now, plot the predicted probabilities 
 ```{r, echo=FALSE}
-plot.new()
-box()
+p1 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.time,
+                 group = risks.time)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+p2 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.communication,
+                 group = risks.communication)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+p3 <- ggplot(data = data.pred,
+             aes(x = category, y = probability,
+                 colour = risks.lackemployeecontrol,
+                 group = risks.lackemployeecontrol)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+p4 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.unclearPolicy,
+                 group = risks.unclearPolicy)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+p5 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.workinghours,
+                 group = risks.workinghours)) + geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+
+source("multiplot.R")
+multiplot(p1, p2, p3, p4, p5, cols = 3)
 ```
 **End**
