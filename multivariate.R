@@ -120,6 +120,10 @@ p1 <- ggplot(data = data.pred,
              aes(x = category, y = probability, colour = risks.time,
                  group = risks.time)) + geom_point(size = 3) + 
   geom_line(linetype = "dashed", size = 2)
+
+p1 + theme(axis.text.x = element_blank(), axis.text.y = element_blank(),
+           axis.title.x = element_blank(), axis.title.y = element_blank(),
+           legend.position = "none")
 p2 <- ggplot(data = data.pred,
              aes(x = category, y = probability, colour = risks.communication,
                  group = risks.communication)) + geom_point(size = 3) + 
@@ -139,7 +143,7 @@ p5 <- ggplot(data = data.pred,
   geom_line(linetype = "dashed", size = 2)
 
 source("multiplot.R") # from http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
-multiplot(p1, p2, p3, p4, p5, cols = 3)
+multiplot(p1, p2, p3, p4, p5, cols = 2)
 
 rm(list = ls())
 
