@@ -22,7 +22,6 @@ covars <- ~ risks.time + risks.communication + risks.lackemployeecontrol +
 (array <- xtabs(covars, data = mydata))
 (flat <- ftable(array))
 
-vcdExtra::CMHtest(flat)                      # Cochran-Mantel-Haenszel test
 
 # Visualize
 vcd::doubledecker(orgFormula, 
