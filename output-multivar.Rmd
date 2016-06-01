@@ -37,11 +37,6 @@ vcd::doubledecker(orgFormula,
                   data = mydata, main = "Doubledecker plot of the data")
 ```
 
-We also run a Cochran-Mantel-Haenstzl test to test for associations amongst the different elements of the above table and chart.
-```{r, echo=FALSE}
-vcdExtra::CMHtest(flat)                      # Cochran-Mantel-Haenszel test
-```
-
 **Modelling the data**
 ```{r, echo=FALSE}
 ordered.fit <- polr(formula = orgFormula, data = mydata, Hess = TRUE)
