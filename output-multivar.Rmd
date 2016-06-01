@@ -29,17 +29,18 @@ array <- xtabs(covars, data = mydata)
 (flat <- ftable(array))
 ```
 
-Visualize this arrangement using a doubledecker plot.
+Visualize this arrangement of the data using a doubledecker plot. In this chart, the predictor variables are stacked at the bottom. The area of the shaded areas represent the weights of the cells of the multi-way tabulation of the variables of interest.
 ```{r, echo=FALSE}
-orgFormula <- concern.stress ~ risks.time + risks.communication + risks.lackemployeecontrol + 
-  risks.unclearPolicy +  risks.workinghours 
-vcd::doubledecker(orgFormula, 
-                  data = mydata, main = "Doubledecker plot of the data")
+orgFormula <- concern.stress ~ risks.time + risks.communication + risks.lackemployeecontrol + risks.unclearPolicy +  risks.workinghours 
+vcd::doubledecker(orgFormula, data = mydata, main = "Doubledecker plot of Stress vs. organizational factors")
 ```
 
 **Modelling the data**
+
+The level of measurment of the outcome variable (ordinal) as well as its distribution as shown in the the univariate analysis led to the decision to try multinomial regression using a proportional odds logit model. In R, the polr() function in the MASS package was deployed and after several analytic steps a tabulation of parameters of the model are printed out below.
 ```{r, echo=FALSE}
 ordered.fit <- polr(formula = orgFormula, data = mydata, Hess = TRUE)
+summary(ordered.fit)
 table.coef <- coef(summary(ordered.fit))
 # calculate and store p-values
 pval <- pnorm(abs(table.coef[, "t value"]), lower.tail = FALSE) * 2
@@ -49,22 +50,27 @@ rm(table.coef, pval)
 ```
 
 
-Calculate the Odds Ratio with 95% confidence intervals
-```{r, echo=FALSE}
+The values are rather difficult to interpret so Odds Ratios were calculated, along with their 95% confidence intervals.
+```{r, message= FALSE, echo=FALSE}
 CI <- confint(ordered.fit)
 odd.ratio <- exp(coef(ordered.fit))
 # Tabulate O.R. and CI
 odds.tabl <- cbind("O.R." = odd.ratio, exp(CI))
 odds.tabl
 ```
+The Odds Ratio for the different variables are a lot easier to interprest
 
-Compare the fit with an intercept-only model
+Compare the fit of the model to the dataset with that of a NULL (intercept-only) model
 ```{r, echo=FALSE}
 nullmodel <- polr(concern.stress ~ 1, data = mydata, Hess = TRUE)
 anova(nullmodel, ordered.fit)
 ```
+The output demonstrates that the model we have selected has a good fit to the data under study.
 
-Assessing the model
+
+Assessing the model: To further buttress the appropriateness of our model we try to establish the proportional odds assumption. If it holds, our ordinal variable is working as if it were a binned continous variable and the distance between the respective classes are essentially the same.
+
+First we generate a logistics distributions each of which should essentially run parallel to one another with intercept at each class boundary as depicted in the model output earlier displayed. In this test, we are treating the output variable as a continuous one ranging from 1 to 3.
 ```{r, comment=">"}
 # --- Evaluating the assumption of proportional odds ---
 # A function to plot at class cut-off points
@@ -74,15 +80,12 @@ props <- function(y) {
     'Y >= 3' = qlogis(mean(y >= 3)))
 }
 
-trial <- with(mydata,
-               summary(as.numeric(concern.stress) ~ risks.time + 
-                         risks.communication + risks.lackemployeecontrol + 
-                         risks.unclearPolicy + risks.workinghours, fun = props))
+trial <- with(mydata,              summary(as.numeric(concern.stress) ~ risks.time +                  risks.communication + risks.lackemployeecontrol +                risks.unclearPolicy + risks.workinghours, fun = props))
 trial
 ```
 
-This step also checks the fit of the model by converting the outcome to binary variables at the respective class boundaries and fitting to the logistic regression model.
-```{r}
+This step also checks the fit of the model by converting the outcome to binary variables at the respective class boundaries and fitting to a logistic regression model. 
+```{r, eval=FALSE}
 # Treat outcome as a binary variable via "cut-off" points to test assumption
 glm(I(as.numeric(concern.stress) >= 2) ~ risks.time + 
       risks.communication + risks.lackemployeecontrol + 
@@ -95,17 +98,23 @@ glm(I(as.numeric(concern.stress) >= 3) ~ risks.time +
     data = mydata)
 ```
 
-Tabulate and plot the logits
+Tabulate and plot the logits: At this stage the 
 ```{r, echo=TRUE}
 trial[, 4] <- trial[, 4] - trial[, 3]
 trial[, 3] <- trial[, 3] - trial[, 3]
 trial
+```
 
+We will now generate a plot of this table. If the assumption of proportional odds holds
+```{r, echo=FALSE}
 plot(trial, which = 1:3, pch = 1:3, xlab = "logit", main = "",
      xlim = range(trial[, 3:4]))
 ```
 
-Predict the probabilites for the outcome variable
+If our assumption of proportional odds is good, we expect distance between the binary responses for the each predictor to be fairly equidistant (the crosses from the triangles) which in this instance is practically the case.
+
+From the preceding steps, it appears that we have a good model for our data and the assumption of proportional odds has been reasonably met. We now proceed to use the logits to generate and predict the probabilites for the outcome variable.
+
 ```{r}
 # Create a dummy dataframe to predict probabilities
 ks <- rep(c("Yes", "No"), 600)
@@ -115,43 +124,29 @@ data.pred <- data.frame(risks.time = ks,
                         risks.unclearPolicy = ks,
                         risks.workinghours = ks)
 data.pred <- cbind(data.pred, predict(ordered.fit, data.pred, type = "probs"))
-head(data.pred)
+head(data.pred) # Display the first 6 records of the new dataframe
 ```
 
-We now rearrange the dataframe so that we have can plot the probabilities against the variables
+We have to transform the dataframe such that the headings with the probabilities, which are the respective classes of our outcome variable are once again turned into variable categories and their values appropriately redistributed. This will enable us to visualize the data. We will plot the probabilities against the variables
 ```{r}
 # Tidy the dataframe
 data.pred <- data.pred %>%
   gather(category, probability, `No concern`:`Major concern`,
                 factor_key = TRUE)
-head(data.pred)
+head(data.pred) # The first six entries of our new dataframe
 ```
 
-Now, plot the predicted probabilities 
+Now, plot the predicted probabilities - these are identical for all the predictor variables seeing that each column has the same elements i.e. ``` rep(c("Yes","No"), 600) ```. We will therefore only generate one plot for this analysis. Upon replication of this analysis with other output-predictor pairs, we will compare the charts to see if there are any interesting differences.
+
 ```{r, echo=FALSE}
 p1 <- ggplot(data = data.pred,
              aes(x = category, y = probability, colour = risks.time,
                  group = risks.time)) + geom_point(size = 3) + 
   geom_line(linetype = "dashed", size = 2)
-p2 <- ggplot(data = data.pred,
-             aes(x = category, y = probability, colour = risks.communication,
-                 group = risks.communication)) + geom_point(size = 3) + 
-  geom_line(linetype = "dashed", size = 2)
-p3 <- ggplot(data = data.pred,
-             aes(x = category, y = probability,
-                 colour = risks.lackemployeecontrol,
-                 group = risks.lackemployeecontrol)) + geom_point(size = 3) + 
-  geom_line(linetype = "dashed", size = 2)
-p4 <- ggplot(data = data.pred,
-             aes(x = category, y = probability, colour = risks.unclearPolicy,
-                 group = risks.unclearPolicy)) + geom_point(size = 3) + 
-  geom_line(linetype = "dashed", size = 2)
-p5 <- ggplot(data = data.pred,
-             aes(x = category, y = probability, colour = risks.workinghours,
-                 group = risks.workinghours)) + geom_point(size = 3) + 
-  geom_line(linetype = "dashed", size = 2)
+p1
 
-source("multiplot.R")
-multiplot(p1, p2, p3, p4, p5, cols = 3)
 ```
+
+I hope I was able to communicate the findings to a reasonable extent. Of course, all the outputs will undergo a bit of cosmetic improvements, but I need to your input before we proceed.
+
 **End**
