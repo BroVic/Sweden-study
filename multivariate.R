@@ -22,7 +22,7 @@ flat <- flat %>%
 head(flat)
 
 # Visualize the tabulation
-doubledecker(orgFormula, data = mydata, main = "Doubledecker plot of the data")
+vcd::doubledecker(orgFormula, data = mydata, main = "Doubledecker plot of the data")
 
 # Proportional odds logit model
 ordered.fit <- MASS::polr(formula = orgFormula, data = mydata, Hess = TRUE)
