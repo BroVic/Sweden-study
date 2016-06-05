@@ -4,29 +4,19 @@
 library(ggplot2)
 library(tidyr)
 library(effects)
+library(Formula)
 
 # Load the data
 mydata<- readRDS("clean_x.rds")
 
-# Create temporary formula objects with outcome vs. predictors variables
-stress_org <- concern.stress ~ risks.time + risks.communication + 
-  risks.lackemployeecontrol + risks.unclearPolicy + risks.workinghours
-bully_org <- concern.bullying ~ risks.time + risks.communication + 
-  risks.lackemployeecontrol + risks.unclearPolicy + risks.workinghours
-viol_org <- concern.violence ~ risks.time + risks.communication + 
-  risks.lackemployeecontrol + risks.unclearPolicy + risks.workinghours
-stress_emp <- concern.stress ~ risks.jobinsecurity + risks.difficultpeople +
-  risks.relationships + risks.discrimination + risks.poor.cooperation
-bully_emp <- concern.bullying ~ risks.jobinsecurity + risks.difficultpeople +
-  risks.relationships + risks.discrimination + risks.poor.cooperation
-viol_emp <- concern.violence ~ risks.jobinsecurity + risks.difficultpeople +
-  risks.relationships + risks.discrimination + risks.poor.cooperation
+# Create formula object for use in this script
+myformula <- concern.stress | concern.bullying | concern.violence ~ 
+  risks.time + risks.communication + risks.lackemployeecontrol + 
+  risks.unclearPolicy + risks.workinghours | risks.jobinsecurity + 
+  risks.difficultpeople + risks.relationships + risks.discrimination + 
+  risks.poor.cooperation
 
-# Bunch them into a list for iterative use and remove the temporary objects
-allPairs <- list(stress_org, bully_org, viol_org, stress_emp, bully_emp,
-                 viol_emp)
-rm(stress_emp, stress_org, bully_emp, bully_org, viol_emp, viol_org) 
-
+theFORMULA <- Formula(myformula)
 
 ########### This is yet to be treated #######################################
 # Build an array and flatten it into a multi-way contingency table          #
@@ -40,18 +30,27 @@ flat <- flat %>%                                                            #
 
 
 # Visualize the tabulation
-for (i in 1:6)
-  vcd::doubledecker(allPairs[[i]], data = mydata,
-                    main = paste("Doubledecker plot of", names(allPairs[[i]])))
+for (i in 1:3) {
+  for (j in 1:2) {
+    dd <- formula(theFORMULA, lhs = i, rhs = j)
+    vcd::doubledecker(dd, data = mydata)
+  }
+}
 
 # Proportional odds logit models for each pair of outcome-predictors
 ordered.fit <- list(NA)                 # empty list to store the 6 models
-for (i in 1:6) {
-  ordered.fit[[i]] <- MASS::polr(formula = allPairs[[i]],
-                                 data = mydata, Hess = TRUE)
-  print(summary(ordered.fit[[i]]))      # each summary printed to console
+for (j in 1:3) {
+  for (k in 1:2) {
+    ff <- formula(theFORMULA, lhs = j, rhs = k)
+    for (i in 1:6) {
+      mod <- MASS::polr(formula = ff, data = mydata, Hess = TRUE)
+      mod <- summary(mod)     # each summary printed to console
+      print(mod)
+      ordered.fit[[i]] <- mod
+    }
+  }
 }
-rm(allPairs)
+
 
 # Display the effects of this model
 # Prepare vectors of each of the predictor sets
