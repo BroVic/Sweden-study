@@ -11,21 +11,26 @@ library(Formula)
 library(rtf)
 mydata <- readRDS("clean_x.rds")
 
-myformula <- concern.stress ~ risks.time + risks.communication +
-  risks.lackemployeecontrol + risks.unclearPolicy + risks.workinghours
-update(theFORMULA, . ~ risks.time + risks.lackemployeecontro + 
-         risks.workinghours)
+myformula <- concern.stress | concern.bullying | concern.violence ~ 
+  risks.time + risks.communication + risks.lackemployeecontrol + 
+  risks.unclearPolicy + risks.workinghours | risks.poor.cooperation +
+  risks.jobinsecurity + risks.difficultpeople + risks.relationship +
+  risks.discrimination
+length(myformula)
+theFORMULA <- Formula(myformula)
+length(theFORMULA)
+theFORMULA <- formula(theFORMULA, lhs = 1, rhs = 1)
 
 # Subset the formula, removing the influence of the two variables
 fm <- update(theFORMULA, . ~ risks.time + risks.lackemployeecontrol + 
                risks.workinghours)
-ordered.fit2 <- MASS::polr(fm, data = mydata, Hess = TRUE)
-summary(ordered.fit2)
+mod <- MASS::polr(fm, data = mydata, Hess = TRUE)
+summary(mod)
 
 predictors <- c("risks.time", "risks.lackemployeecontrol", "risks.workinghours")
-eff.obj1 <- effect("risks.time", ordered.fit2)
-eff.obj3 <- effect("risks.lackemployeecontrol", ordered.fit2)
-eff.obj5<- effect("risks.workinghours", ordered.fit2)
+eff.obj1 <- effect("risks.time", mod)
+eff.obj3 <- effect("risks.lackemployeecontrol", mod)
+eff.obj5<- effect("risks.workinghours", mod)
 plot(eff.obj1, main = FALSE, grid = TRUE, row = 1, col = 1, nrow = 1,
      ncol = 3, more = TRUE)
 plot(eff.obj3, main = FALSE, grid = TRUE, ylab = "", row = 1, col = 2, 
@@ -34,14 +39,14 @@ plot(eff.obj5, main = FALSE, grid = TRUE, ylab = "", row = 1, col = 3,
      nrow = 1, ncol = 3, more = FALSE)
 
 # Tabulate coefficients and store p-values
-table.coef <- coef(summary(ordered.fit2))
+table.coef <- coef(summary(mod))
 pval <- pnorm(abs(table.coef[, "t value"]), lower.tail = FALSE) * 2
 (table.coef <- cbind(table.coef, "p-value" = pval))
 
 # Obtain the Odds Ratio and match with 95% confidence intervals
-CI <- confint(ordered.fit2)
-default.CI <- confint.default(ordered.fit2)
-odd.ratio <- exp(coef(ordered.fit2))
+CI <- confint(mod)
+default.CI <- confint.default(mod)
+odd.ratio <- exp(coef(mod))
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 
 # Prediction
@@ -49,7 +54,7 @@ ks <- rep(c("Yes", "No"), 600)
 data.pred <- as.data.frame(matrix(rep(ks, 3), ncol = 3, byrow = FALSE))
 colnames(data.pred) <- c("risks.time", "risks.lackemployeecontrol",
                          "risks.workinghours")
-data.pred <- cbind(data.pred, predict(ordered.fit2, data.pred, type = "probs"))
+data.pred <- cbind(data.pred, predict(mod, data.pred, type = "probs"))
 head(data.pred)
 
 # Tidy the dataframe
@@ -62,3 +67,5 @@ p1 <- ggplot(data = data.pred, aes(x = category, y = probability,
                                    colour = risks.time, group = risks.time)) +
   geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
 p1
+
+file.edit("bully-org_regr.R")
