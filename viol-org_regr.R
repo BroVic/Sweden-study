@@ -85,4 +85,4 @@ p1 <- ggplot(data = data.pred,
   geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
 p1
 
-file.edit()
+file.edit("stress-emp_regr.R")
