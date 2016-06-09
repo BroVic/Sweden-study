@@ -8,13 +8,12 @@ library(ggplot2)
 library(tidyr)
 library(effects)
 library(Formula)
-library(rtf)
 mydata <- readRDS("clean_x.rds")
 
 myformula <- concern.stress | concern.bullying | concern.violence ~ 
   risks.time + risks.communication + risks.lackemployeecontrol + 
   risks.unclearPolicy + risks.workinghours | risks.poor.cooperation +
-  risks.jobinsecurity + risks.difficultpeople + risks.relationship +
+  risks.jobinsecurity + risks.difficultpeople + risks.relationships +
   risks.discrimination
 length(myformula)
 theFORMULA <- Formula(myformula)
