@@ -67,9 +67,9 @@ data.pred <- data.pred %>%
 head(data.pred)
 
 #plot the predicted probabilities
-p1 <- ggplot(data = data.pred,
+p6 <- ggplot(data = data.pred,
              aes(x = category, y = probability, colour = risks.relationships,
                  group = risks.relationships)) + 
   geom_point(size = 3) + 
   geom_line(linetype = "dashed", size = 2)
-p1
+p6

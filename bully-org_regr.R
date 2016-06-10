@@ -79,9 +79,9 @@ data.pred <- data.pred %>%
 head(data.pred)
 
 #plot the predicted probabilities
-p1 <- ggplot(data = data.pred, aes(x = category, y = probability, 
+p2 <- ggplot(data = data.pred, aes(x = category, y = probability, 
                                    colour = risks.time, group = risks.time)) +
   geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
-p1
+p2
 
 file.edit("viol-org_regr.R")

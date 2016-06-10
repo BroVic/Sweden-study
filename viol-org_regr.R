@@ -79,10 +79,10 @@ data.pred <- data.pred %>%
 head(data.pred)
 
 #plot the predicted probabilities
-p1 <- ggplot(data = data.pred, 
+p3 <- ggplot(data = data.pred, 
              aes(x = category, y = probability, colour = risks.workinghours,
                  group = risks.workinghours)) +
   geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
-p1
+p3
 
 file.edit("stress-emp_regr.R")

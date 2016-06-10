@@ -79,11 +79,11 @@ data.pred <- data.pred %>%
 head(data.pred)
 
 #plot the predicted probabilities
-p1 <- ggplot(data = data.pred,
+p5 <- ggplot(data = data.pred,
              aes(x = category, y = probability, colour = risks.difficultpeople,
                  group = risks.difficultpeople)) + 
   geom_point(size = 3) + 
   geom_line(linetype = "dashed", size = 2)
-p1
+p5
 
 file.edit("viol-emp_regr.R")
