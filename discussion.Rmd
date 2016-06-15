@@ -10,10 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 I will attempt to give highlights of the approach I used in conducting the multivariate analysis of the data as proposed.
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 library(MASS)
-library(vcd)
-library(vcdExtra)
 library(tidyr)
 library(ggplot2)
 library(effects)
@@ -22,7 +20,7 @@ mydata <- readRDS("clean_x.rds")
 
 **Fitting a regression model for the data** 
 Declare composite formula for the models that we will be fitting that contains the various outcome-predictor pairs on the left and right hand side, respectivel7
-```{r}
+```{r, echo=FALSE}
 library(Formula)
 # create regular formula
 myformula <- concern.stress | concern.bullying | concern.violence ~ 
@@ -40,13 +38,13 @@ theFORMULA
 
 This process will be repeated for each step of the analysis as the appropriate pair of outcome/predictors are selected.
 
-```{r}
+```{r, echo=FALSE}
 mod <- polr(theFORMULA, data = mydata, Hess = TRUE)
 summary(mod)
 ```
 There are a few lines of code that will allow us to print the p-values from this summary of the model.
 
-```{r}
+```{r, include=FALSE}
 # Write a function to do this easily across board
 printPV <- function(x) {
   table.coef <- coef(summary(x))
@@ -54,21 +52,22 @@ printPV <- function(x) {
   table.coef <- cbind(table.coef, "p-value" = pval)
   print(table.coef)
 }
-
-# Now printing the p-values and tabulate them.
-printPV(mod)        # user-defined function to display output with p-values
 ```
 
 After removing the predictors that were not significant contributors to the fit,
-```{r}
+```{r, echo=FALSE, message=FALSE}
 fm_x <- update(theFORMULA, . ~ risks.time + risks.lackemployeecontrol + 
                risks.workinghours)
 mod_x <- polr(fm_x, data = mydata, Hess = TRUE)
 printPV(mod_x)
+
+CI <- confint(mod_x)
+odd.ratio <- exp(coef(mod_x))
+(odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 ```
 
 Now, the effects of this model are displayed (with focus on the predictors that were found to significantly contribute to the regression of the outcome variable)
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE}
 predictors <- c("risks.time", "risks.communication",
                 "risks.lackemployeecontrol", "risks.unclearPolicy",
                 "risks.workinghours")
@@ -86,14 +85,36 @@ plot(eff.obj[[3]], main = FALSE, grid = TRUE, ylab = "", row = 1, col = 3,
 ```
 
 
-I applied the same method in running all the analyses by fitting the model to the variables. The tables are presented below (The table were trimmed of predictors that appeared to have the least effect on the outcome variable)
 ```{r, echo=FALSE}
+ks <- rep(c("Yes", "No"), 600)
+data.pred <- as.data.frame(matrix(rep(ks, 3), ncol = 3, byrow = FALSE))
+colnames(data.pred) <- c("risks.time", "risks.lackemployeecontrol",
+                         "risks.workinghours")
+data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
+head(data.pred)
+
+# Tidy the dataframe
+data.pred <- data.pred %>%
+  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+head(data.pred)
+
+p1 <- ggplot(data = data.pred, aes(x = category, y = probability, 
+                                   colour = risks.time, group = risks.time)) + geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
+
+```
+
+The same method is now applied in running all the analyses by fitting the model to the variables. (The table were trimmed of predictors that appeared to have the least effect on the outcome variable)
+```{r, echo=FALSE, message=FALSE}
 # Bullying vs organisational factors
 theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 2, rhs = 1)
-(fm_x <- update(theFORMULA, . ~ risks.time + risks.workinghours))
+fm_x <- update(theFORMULA, . ~ risks.time + risks.workinghours)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
 printPV(mod_x)
+
+CI <- confint(mod_x)
+odd.ratio <- exp(coef(mod_x))
+(odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 
 predictors_x <- predictors[c(1, 5)]
 eff.obj_x <- list(NA)
@@ -104,20 +125,63 @@ plot(eff.obj_x[[1]], main = FALSE, grid = TRUE, row = 1, col = 1, nrow = 1,
      ncol = 3, more = TRUE)
 plot(eff.obj_x[[2]], main = FALSE, grid = TRUE, ylab = "", row = 1, col = 2, 
      nrow = 1, ncol = 3, more = FALSE)
+```
 
+```{r, include=FALSE}
+ks <- rep(c("Yes", "No"), 600)
+data.pred <- as.data.frame(matrix(rep(ks, 2), ncol = 2, byrow = FALSE))
+colnames(data.pred) <- c("risks.time", "risks.workinghours")
+data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
 
+# Tidy the dataframe
+data.pred <- data.pred %>%
+  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+
+#plot the predicted probabilities
+p2 <- ggplot(data = data.pred, aes(x = category, y = probability, 
+                                   colour = risks.time, group = risks.time)) + geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
+```
+
+```{r, echo=FALSE, message=FALSE}
 # Violence vs organisational factors
 theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 3, rhs = 1)
-(fm_x <- update(theFORMULA, . ~ risks.workinghours))
+fm_x <- update(theFORMULA, . ~ risks.workinghours)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
 printPV(mod_x)
+
+CI <- confint(mod_x)
+odd.ratio <- exp(coef(mod_x))
+(odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 
 predictors_x <- predictors[5]
 eff.obj_x <- effect(predictors_x, mod_x)
 plot(eff.obj_x, main = FALSE, grid = TRUE, row = 1, col = 1, nrow = 1,
      ncol = 3, more = FALSE)
+```
 
+
+```{r, include=FALSE}
+# Prediction
+ks <- rep(c("Yes", "No"), 600)
+data.pred <- as.data.frame(matrix(rep(ks, 1), ncol = 1))
+colnames(data.pred) <- "risks.workinghours"
+data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
+
+# Tidy the dataframe
+data.pred <- data.pred %>%
+  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+
+#plot the predicted probabilities
+p3 <- ggplot(data = data.pred, 
+             aes(x = category, y = probability, colour = risks.workinghours,
+                 group = risks.workinghours)) +
+  geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
+
+```
+
+
+```{r, echo=FALSE, message=FALSE}
 # predictors for second phase
 predictors <- c("risks.poor.cooperation", "risks.jobinsecurity",
                 "risks.difficultpeople", "risks.relationships",
@@ -125,10 +189,14 @@ predictors <- c("risks.poor.cooperation", "risks.jobinsecurity",
 # Stress vs employee factors
 theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 1, rhs = 2)
-(fm_x <- update(theFORMULA, . ~ risks.poor.cooperation + risks.jobinsecurity +
-                risks.relationships))
+fm_x <- update(theFORMULA, . ~ risks.poor.cooperation + risks.jobinsecurity
+                + risks.relationships)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
 printPV(mod_x) 
+
+CI <- confint(mod_x)
+odd.ratio <- exp(coef(mod_x))
+(odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 
 predictors_x <- predictors[c(1, 2, 4)]
 eff.obj_x <- list(NA)
@@ -141,25 +209,76 @@ plot(eff.obj_x[[2]], main = FALSE, grid = TRUE, ylab = "", row = 1, col = 2,
      nrow = 1, ncol = 3, more = TRUE)
 plot(eff.obj_x[[3]], main = FALSE, grid = TRUE, ylab = "", row = 1, col = 3, 
      nrow = 1, ncol = 3, more = FALSE)
+```
 
+```{r, include=FALSE}
+# Prediction
+ks <- rep(c("Yes", "No"), 600)
+data.pred <- as.data.frame(matrix(rep(ks, 3), ncol = 3, byrow = FALSE))
+colnames(data.pred) <- predictors_x
+data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
+
+# Tidy the dataframe
+data.pred <- data.pred %>%
+  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+
+#plot the predicted probabilities
+p4 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.jobinsecurity,
+                 group = risks.jobinsecurity)) + 
+  geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+```
+
+
+```{r, echo=FALSE, message=FALSE}
 # Bullying vs employee factors
 theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 2, rhs = 2)
-(fm_x <- update(theFORMULA, . ~ risks.difficultpeople))
+fm_x <- update(theFORMULA, . ~ risks.difficultpeople)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
 printPV(mod_x)
+
+CI <- confint(mod_x)
+odd.ratio <- exp(coef(mod_x))
+(odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 
 predictors_x <- predictors[3]
 eff.obj_x <- effect(predictors_x, mod_x)
 plot(eff.obj_x, main = FALSE, grid = TRUE, row = 1, col = 1, nrow = 1,
      ncol = 3, more = FALSE)
+```
 
+```{r, include=FALSE}
+# Prediction
+data.pred <- as.data.frame(matrix(ks, ncol = 1))
+colnames(data.pred) <- predictors_x
+data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
+
+# Tidy the dataframe
+data.pred <- data.pred %>%
+  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+
+#plot the predicted probabilities
+p5 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.difficultpeople,
+                 group = risks.difficultpeople)) + 
+  geom_point(size = 3) + 
+  geom_line(linetype = "dashed", size = 2)
+```
+
+
+```{r, echo=FALSE, message=FALSE}
 # Violence vs employee factors
 theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 3, rhs = 2)
-(fm_x <- update(theFORMULA, . ~ risks.relationships))
+fm_x <- update(theFORMULA, . ~ risks.relationships)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
 printPV(mod_x) 
+
+CI <- confint(mod_x)
+odd.ratio <- exp(coef(mod_x))
+(odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 
 predictors_x <- predictors[4]
 eff.obj_x <- effect(predictors_x, mod_x)
@@ -167,9 +286,27 @@ plot(eff.obj_x, main = FALSE, grid = TRUE, row = 1, col = 1, nrow = 1,
      ncol = 3, more = FALSE)
 ```
 
+```{r, include=FALSE}
+# Prediction
+data.pred <- as.data.frame(matrix(ks, ncol = 1))
+colnames(data.pred) <- predictors_x
+data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
+
+# Tidy the dataframe
+data.pred <- data.pred %>%
+  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+
+#plot the predicted probabilities
+p6 <- ggplot(data = data.pred,
+             aes(x = category, y = probability, colour = risks.relationships,
+                 group = risks.relationships)) + 
+  geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
+
+```
+
 Here is a summary of the interactions among the outcomes and their predictors:
 
-## Significance of predictors (p < .001)
+### Significance of predictors (p < .001)
 ### Organisational factors
 Org. factors  | Stress    | Bullying   | Violence
 ------------- | --------- | ---------- | ----------
@@ -191,16 +328,8 @@ Discrimination|   No   |  No      |  No
 From the model, long working hours seemed to be most significant among the variables in predicting the psychosocial problems of stress, bullying and violence in the workplace.
 
 We now display how well the model will predict the outcomes for organisational factors and employee-related issues, respectively.
-
 ```{r, echo=FALSE, message=FALSE}
 # Plot all the predicted outputs in one view
 source("multiplot.R") 
-
-if (!exists("p6"))              # check if objects are in workspace
-  source("viol-emp_regr.R")
-
 multiplot(p1, p2, p3, p4, p5, p6, cols = 2)
-
-# Thanking Winston Chang for multiplot()
-# http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
 ```
