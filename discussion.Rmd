@@ -1,49 +1,62 @@
 ---
-title: "Discussion"
-author: "Victor Ordu"
-date: "13 June 2016"
-output: html_document
+title: "Discussion on the Multivariate Analysis"
+author: 
+date: "20 June 2016"
+output: word_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-I will attempt to give highlights of the approach I used in conducting the multivariate analysis of the data as proposed.
-```{r, echo=FALSE, warning=FALSE}
-library(MASS)
-library(tidyr)
-library(ggplot2)
-library(effects)
+We will attempt to highlight the approach we used in conducting the multivariate analysis of the data as proposed. We started by loading the cleaned version of the dataset into R and displaying an overview. 
+```{r, echo=FALSE}
 mydata <- readRDS("clean_x.rds")
 ```
 
-**Fitting a regression model for the data** 
-Declare composite formula for the models that we will be fitting that contains the various outcome-predictor pairs on the left and right hand side, respectivel7
-```{r, echo=FALSE}
-library(Formula)
-# create regular formula
-myformula <- concern.stress | concern.bullying | concern.violence ~ 
-  risks.time + risks.communication + risks.lackemployeecontrol + 
-  risks.unclearPolicy + risks.workinghours | risks.poor.cooperation +
-  risks.jobinsecurity + risks.difficultpeople + risks.relationships +
-  risks.discrimination
-
-theFORMULA <- Formula(myformula)
-theFORMULA
-
-# Subset to obtain first pair
-(theFORMULA <- formula(theFORMULA, lhs = 1, rhs = 1))
+Recall that we trimmed off several variables during data cleansing and we now have `r dim(mydata)[1]` rows and `r dim(mydata)[2]` columns. The variables we are interested in for the purpose of answering the our question on pschosocial problems span from columns 2 through 14.
+```{r, echo=FALSE, message=FALSE}
+if (!require(dplyr))
+  install.packages("dplyr")
+library(dplyr)
+tbl_df(mydata)
 ```
 
-This process will be repeated for each step of the analysis as the appropriate pair of outcome/predictors are selected.
+**Fitting a regression model for the data** 
 
+First we put together a composite formula for the models that we would be fitting, which contains the various outcome-predictor pairs on the left and right hand side, respectively. This object will be made subsettable in the course of operations and the appropriate parts will be used for the different outcome-predictor pairs.
+```{r, echo=FALSE, message=FALSE}
+if (!require(Formula))
+  install.packages("Formula")
+library(Formula)
+```
+```{r}
+# create combined formula
+myformula <- concern.stress | concern.bullying | concern.violence ~ risks.time + risks.communication + risks.lackemployeecontrol + risks.unclearPolicy + risks.workinghours | risks.poor.cooperation + risks.jobinsecurity + risks.difficultpeople + risks.relationships + risks.discrimination    # Note the 3 variables on lhs and the 10 on the rhs. Also note 5 predictors on each side of the boolean operator '|'.
+```
 ```{r, echo=FALSE}
+theFORMULA <- Formula(myformula)  # convert to a subsettable type
+
+# Subset to obtain first pair
+cat("After subsetting, the formula for fitting this model is: ")
+(theFORMULA <- formula(theFORMULA, lhs = 1, rhs = 1)) # subset using 1st outcome variable and 1st predictor group 
+```
+This process will be repeated for each outcome-predictor model.
+
+We used a polytomous logistic regression model, specifically a proportional odds logit model. The proof of the appropriateness of this model is contained in an earlier report and will not be repeated here. The assumption of proportional odds was met and the proof for this can be viewed [here](http://github.com/BroVic/Sweden-study/output-multivar.docx).
+```{r, echo=FALSE, message=FALSE}
+if (!require(MASS))
+  install.packages("MASS")
+library(MASS)
+```
+```{r}
+# Fit the model and display output
 mod <- polr(theFORMULA, data = mydata, Hess = TRUE)
 summary(mod)
 ```
-There are a few lines of code that will allow us to print the p-values from this summary of the model.
+Note that in all the models used in this analysis, the dummy variables are coded as `r contrasts(mydata$risks.time)` for responses `r levels(mydata$risks.time)` i.e. a "No" codes as $1$, while a "Yes" codes as $0$.
 
+To proceed, we  ran a few lines of code that allowed us to easily print the p-values from this model's summary, to aid in deciding on the significance of the various independent variables as predictors of the response variable.
 ```{r, include=FALSE}
 # Write a function to do this easily across board
 printPV <- function(x) {
@@ -53,24 +66,39 @@ printPV <- function(x) {
   print(table.coef)
 }
 ```
+```{r, echo=FALSE}
+# Calling the function on the model
+cat("Table 1: Outputs of polytomous logit model for 'concern over stress' vs. organisational factors")
+printPV(mod)
+```
 
-After removing the predictors that were not significant contributors to the fit,
-```{r, echo=FALSE, message=FALSE}
+We removed the predictors that were not significant contributors from the model (by significance, we refer to the _t-statistic_). In this instance, we ended up with the 3 predictors i.e. *Time*, *Lack of Employee Control* and *Long Working Hours*.
+```{r, echo=FALSE}
 fm_x <- update(theFORMULA, . ~ risks.time + risks.lackemployeecontrol + 
                risks.workinghours)
 mod_x <- polr(fm_x, data = mydata, Hess = TRUE)
+cat("Table 2: Same output as Table 1, but with statistically insignificant predictors removed from the model")
 printPV(mod_x)
+```
 
+The 'predictive power' of the variables remains virtually unchanged after the removal of the other variables from this particular model.
+
+Next, we computed and tabulated the odds ratio for these remaining predictors along with their 95% confidence intervals
+```{r, echo=FALSE, message=FALSE}
 CI <- confint(mod_x)
 odd.ratio <- exp(coef(mod_x))
+cat("Table 3: Odds Ratios of the selected predictors with 95% confidence intervals")
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
 ```
 
-Now, the effects of this model are displayed (with focus on the predictors that were found to significantly contribute to the regression of the outcome variable)
-```{r, echo=FALSE, message=FALSE}
-predictors <- c("risks.time", "risks.communication",
-                "risks.lackemployeecontrol", "risks.unclearPolicy",
-                "risks.workinghours")
+Now, the effects of this extant model are displayed as follows:  
+*Figure 1: Effects plot of significant predictors - 'Concern over stress vs. organisational factors* 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+if (!require(effects))
+  install.packages("effects")
+library(effects)
+predictors <- c("risks.time", "risks.communication", "risks.lackemployeecontrol", "risks.unclearPolicy", "risks.workinghours")
 eff.obj <- list(NA)
 predictors_x <- predictors[c(1, 3, 5)]
 for (i in 1:3) {
@@ -84,38 +112,61 @@ plot(eff.obj[[3]], main = FALSE, grid = TRUE, ylab = "", row = 1, col = 3,
      nrow = 1, ncol = 3, more = FALSE)
 ```
 
+Interestingly, the graphs show clearly how 'Time' is a stronger predictor of 'Concern over stress'. Also the likelihood of stress being a major concern increases where 'Time' is considered a risk i.e. a 'Yes' response, while the opposite is the case (it decreases) when concern is said to be 'moderate.
 
+These analyses and visualizations are run for all the outcome predictor pairs and the results are to be considered along similar lines.
+
+The last thing we did was to attempt to predict the proportionality of the outcome variable categories when we hold predictor responses in a state of parity. To do this, we built a mock dataset to test the model with and tested the model on it.
 ```{r, echo=FALSE}
 ks <- rep(c("Yes", "No"), 600)
 data.pred <- as.data.frame(matrix(rep(ks, 3), ncol = 3, byrow = FALSE))
-colnames(data.pred) <- c("risks.time", "risks.lackemployeecontrol",
-                         "risks.workinghours")
+colnames(data.pred) <- c("risks.time", "risks.lackemployeecontrol", "risks.workinghours")
 data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
-head(data.pred)
+cat("Printing out the first 6 rows of the mock data of predicted probabilities")
+tbl_df(data.pred)
+```
 
+Note that each of the outcome categories form a column of this test dataframe. We decided to 'tidy' it, such that each column would represent a variable and each row an observation. To achieve this, we collapsed the 3 columns that represent the predicted probabilities for each of the categories of our outcome variable,
+```{r, echo=FALSE, message=FALSE}
+if (!require(tidyr))
+  install.packages("tidyr")
+library(tidyr)
 # Tidy the dataframe
 data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
-head(data.pred)
+  gather(STRESS, probability, `No concern`:`Major concern`, factor_key = TRUE) %>%
+  rename(Org.Factors = risks.time)
+cat("Printing out the first 6 rows of the transformed data")
+tbl_df(data.pred)
 
-p1 <- ggplot(data = data.pred, aes(x = category, y = probability, 
-                                   colour = risks.time, group = risks.time)) + geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
+# Plot the predicted probabilities for the outcome
+if (!require(ggplot2))
+  install.packages("ggplot2")
+library(ggplot2)
+p1 <- ggplot(data = data.pred, aes(x = STRESS, y = probability, 
+                                   colour = Org.Factors, group = Org.Factors)) + geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
 
 ```
 
-The same method is now applied in running all the analyses by fitting the model to the variables. (The table were trimmed of predictors that appeared to have the least effect on the outcome variable)
+The same steps are now applied in running the remaining analyses by fitting the model to the variables. The tables outputted below were trimmed of predictors that appeared to have the insignificant effects on the outcome variable (significance was based on *t* statistic, $p > .001$). Full details of these can be viewed in the R markdown version of this report hosted on Github b clinking on [this link](http://github.com/BroVic/Sweden-study/discussion.Rmd) (the syntax of these operations is embedded in this document but rendered invisibly to reduce cluttering).
+
 ```{r, echo=FALSE, message=FALSE}
 # Bullying vs organisational factors
 theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 2, rhs = 1)
 fm_x <- update(theFORMULA, . ~ risks.time + risks.workinghours)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
+cat("Table 4: Outputs of polytomous logit model for 'concern over bullying' vs. organisational factors")
 printPV(mod_x)
 
 CI <- confint(mod_x)
 odd.ratio <- exp(coef(mod_x))
+cat("Table 5: Odds Ratio with 95% confidence intervals for selected predictors of 'Concern over bullying'")
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
+```
 
+*Figure 2: Effects plot of significant predictors - 'Concern over bullying vs. organisational factors* 
+
+```{r, echo=FALSE}
 predictors_x <- predictors[c(1, 5)]
 eff.obj_x <- list(NA)
 for (i in 1:2) {
@@ -135,11 +186,12 @@ data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
 
 # Tidy the dataframe
 data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+  gather(BULLYING, probability, `No concern`:`Major concern`, factor_key = TRUE) %>%
+   rename(Org.Factors = risks.time)
 
 #plot the predicted probabilities
-p2 <- ggplot(data = data.pred, aes(x = category, y = probability, 
-                                   colour = risks.time, group = risks.time)) + geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
+p2 <- ggplot(data = data.pred, aes(x = BULLYING, y = probability, 
+                                   colour = Org.Factors, group = Org.Factors)) + geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
 ```
 
 ```{r, echo=FALSE, message=FALSE}
@@ -148,12 +200,18 @@ theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 3, rhs = 1)
 fm_x <- update(theFORMULA, . ~ risks.workinghours)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
+cat("Table 6: Outputs of polytomous logit model for 'concern over violence' vs. organisational factors")
 printPV(mod_x)
 
+cat("Table 7: Odds Ratio with 95% confidence intervals for selected predictors of 'Concern over violence'")
 CI <- confint(mod_x)
 odd.ratio <- exp(coef(mod_x))
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
+```
 
+*Figure 3: Effects plot of significant predictor - 'Concern over violence vs. organisational factors* 
+
+```{r, echo=FALSE}
 predictors_x <- predictors[5]
 eff.obj_x <- effect(predictors_x, mod_x)
 plot(eff.obj_x, main = FALSE, grid = TRUE, row = 1, col = 1, nrow = 1,
@@ -170,13 +228,11 @@ data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
 
 # Tidy the dataframe
 data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+  gather(VIOLENCE, probability, `No concern`:`Major concern`, factor_key = TRUE) %>%
+  rename(Org.Factors = risks.workinghours)
 
 #plot the predicted probabilities
-p3 <- ggplot(data = data.pred, 
-             aes(x = category, y = probability, colour = risks.workinghours,
-                 group = risks.workinghours)) +
-  geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
+p3 <- ggplot(data = data.pred, aes(x = VIOLENCE, y = probability, colour = Org.Factors, group = Org.Factors)) + geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
 
 ```
 
@@ -192,12 +248,18 @@ theFORMULA <- formula(theFORMULA, lhs = 1, rhs = 2)
 fm_x <- update(theFORMULA, . ~ risks.poor.cooperation + risks.jobinsecurity
                 + risks.relationships)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
+cat("Table 8: Outputs of polytomous logit model for 'concern over stress' vs. employee-related factors")
 printPV(mod_x) 
 
+cat("Table 9: Odds Ratio with 95% confidence intervals for employee-related predictors of 'Concern over stress'")
 CI <- confint(mod_x)
 odd.ratio <- exp(coef(mod_x))
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
+```
 
+*Figure 4: Effects plot of significant predictors - 'Concern over stress vs. employee-related factors* 
+
+```{r, echo=FALSE}
 predictors_x <- predictors[c(1, 2, 4)]
 eff.obj_x <- list(NA)
 for (i in 1:3) {
@@ -220,12 +282,13 @@ data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
 
 # Tidy the dataframe
 data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+  gather(STRESS, probability, `No concern`:`Major concern`, factor_key = TRUE) %>%
+  rename(Emp.Factors = risks.poor.cooperation)
 
 #plot the predicted probabilities
 p4 <- ggplot(data = data.pred,
-             aes(x = category, y = probability, colour = risks.jobinsecurity,
-                 group = risks.jobinsecurity)) + 
+             aes(x = STRESS, y = probability, colour = Emp.Factors,
+                 group = Emp.Factors)) + 
   geom_point(size = 3) + 
   geom_line(linetype = "dashed", size = 2)
 ```
@@ -237,12 +300,18 @@ theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 2, rhs = 2)
 fm_x <- update(theFORMULA, . ~ risks.difficultpeople)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
+cat("Table 10: Outputs of polytomous logit model for 'concern over bullying' vs. employee-related factors")
 printPV(mod_x)
 
+cat("Table 11: Odds Ratio with 95% confidence intervals for employee-related predictors of 'Concern over bullying'")
 CI <- confint(mod_x)
 odd.ratio <- exp(coef(mod_x))
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
+```
 
+*Figure 5: Effects plot of significant predictors - 'Concern over bullying vs. employee-related factors* 
+
+```{r, echo=FALSE}
 predictors_x <- predictors[3]
 eff.obj_x <- effect(predictors_x, mod_x)
 plot(eff.obj_x, main = FALSE, grid = TRUE, row = 1, col = 1, nrow = 1,
@@ -257,14 +326,12 @@ data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
 
 # Tidy the dataframe
 data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+  gather(BULLYING, probability, `No concern`:`Major concern`, factor_key = TRUE) %>%
+  rename(Emp.Factors = risks.difficultpeople)
 
 #plot the predicted probabilities
 p5 <- ggplot(data = data.pred,
-             aes(x = category, y = probability, colour = risks.difficultpeople,
-                 group = risks.difficultpeople)) + 
-  geom_point(size = 3) + 
-  geom_line(linetype = "dashed", size = 2)
+             aes(x = BULLYING, y = probability, colour = Emp.Factors, group = Emp.Factors)) + geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
 ```
 
 
@@ -274,12 +341,18 @@ theFORMULA <- Formula(myformula)
 theFORMULA <- formula(theFORMULA, lhs = 3, rhs = 2)
 fm_x <- update(theFORMULA, . ~ risks.relationships)
 mod_x <- polr(formula = fm_x, data = mydata, Hess = TRUE)
+cat("Table 12: Outputs of polytomous logit model for 'concern over violence' vs. employee-related factors")
 printPV(mod_x) 
 
+cat("Table 13: Odds Ratio with 95% confidence intervals for employee-related predictors of 'Concern over violence'")
 CI <- confint(mod_x)
 odd.ratio <- exp(coef(mod_x))
 (odds.tabl <- cbind("O.R." = odd.ratio, exp(CI)))
+```
 
+*Figure 6: Effects plot of significant predictors - 'Concern over violence vs. employee-related factors* 
+
+```{r, echo=FALSE}
 predictors_x <- predictors[4]
 eff.obj_x <- effect(predictors_x, mod_x)
 plot(eff.obj_x, main = FALSE, grid = TRUE, row = 1, col = 1, nrow = 1,
@@ -294,42 +367,59 @@ data.pred <- cbind(data.pred, predict(mod_x, data.pred, type = "probs"))
 
 # Tidy the dataframe
 data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+  gather(VIOLENCE, probability, `No concern`:`Major concern`, factor_key = TRUE) %>%
+  rename(Emp.Factors = risks.relationships)
 
 #plot the predicted probabilities
 p6 <- ggplot(data = data.pred,
-             aes(x = category, y = probability, colour = risks.relationships,
-                 group = risks.relationships)) + 
+             aes(x = VIOLENCE, y = probability, colour = Emp.Factors,
+                 group = Emp.Factors)) + 
   geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
 
 ```
+Note that for prediction, the predictors' prior probability was set at $Pr(predictors = .5)$.
 
-Here is a summary of the interactions among the outcomes and their predictors:
+We concluded the analyses by displaying how well our models predict these outcomes. In the figure below, the predicted probabilities for the different models are displayed. They display a clear dichotomy in the predicability of psychosocial problems by organisational factors (the first 3 graphs) compared to employee-related factors.
 
-### Significance of predictors (p < .001)
-### Organisational factors
+**Figure 7 - Combined redicted probabilities for all 6 models, with  for the binary predictors** 
+
+```{r, eval=FALSE, include=FALSE}
+# Plot all the predicted outputs in one view
+source("multiplot.R") 
+multiplot(p1, p4, cols = 2)
+multiplot(p2, p5, cols = 2)
+multiplot(p3, p6, cols = 2)
+```
+```{r, echo=FALSE}
+p1; p4; p2; p5; p3; p6
+```
+Note that in the above graphs, Another key point of interest from this graph is that, according to these data, there is not much knowledge on the part of management regarding the issue of violence in the workplace. This could indicate a typical disconnect between a management and staff or a problem with disclosure. Again, there were insufficient data collected to adequately reflect the point-of-view of employees.
+
+**Significance of predictors (p < .001)** 
+Here is a summary (Table 13) of the interactions among the outcomes and their predictors: 
+
+### Table 14: Summary of predictors significance (p < .001)
+
+#### Organisational factors 
 Org. factors  | Stress    | Bullying   | Violence
 ------------- | --------- | ---------- | ----------
 Time          |    Yes    |    Yes     |    No
 Communication |    No     |    No      |    No
-Lack Emp cont |    Yes    |    No      |    No
-Unclear Pol   |    No     |    No      |    No
-Working hrs   |  **Yes**  |  **Yes**   |  **Yes**
+Lack Emp Cont |    Yes    |    No      |    No
+Unclear Policy|    No     |    No      |    No
+Working Hours |  **Yes**  |  **Yes**   |  **Yes**
 
-### Employee-related issues
+#### Employee-related issues 
 Emp. factors  | Stress | Bullying | Violence
 ------------- | ------ | -------- | --------
-Poor coop.    |   Yes  |  No      |  No
-Job insecurity|   Yes  |  No      |  No
-Diff. people  |   No   |  Yes     |  No
+Poor Coop     |   Yes  |  No      |  No
+Job Insecurity|   Yes  |  No      |  No
+Diff. People  |   No   |  Yes     |  No
 Relationships |   Yes  |  No      |  Yes
 Discrimination|   No   |  No      |  No
 
-From the model, long working hours seemed to be most significant among the variables in predicting the psychosocial problems of stress, bullying and violence in the workplace.
+From the table, among the organisational factors, **long working hours seemed, in the view of Management, to be the most significant in predicting these psychosocial problems in the workplace**.
 
-We now display how well the model will predict the outcomes for organisational factors and employee-related issues, respectively.
-```{r, echo=FALSE, message=FALSE}
-# Plot all the predicted outputs in one view
-source("multiplot.R") 
-multiplot(p1, p2, p3, p4, p5, p6, cols = 2)
-```
+For employee-related issues, the pattern is not so clear. This could suggest that the management staff do not have a clear picture of any possible problems at that level of their orgnanisations. 
+
+One particular limitation of this analysis is the fact that, due to a preponderance of missing entries in the relevant questionnaire fields, it was practically impossible to disaggregate the data in a meaningful way. This presents the problem of unascertainable clustering of the missing values to particular locales, countries, etc. These results should be interpreted with great care but should equally generate sufficient interest for further study into these phenomena.
