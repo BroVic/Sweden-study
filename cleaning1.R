@@ -1,6 +1,7 @@
-# Data cleaning for eurosurv2009.csv
+# Data cleaning for esener2009_20090924.tab
 library(dplyr)
-rawdata <- read.csv("eurosurv2009.csv", na.strings = "")
+
+rawdata <- read.delim("dataset/esener2009_20090924.tab")
 source("helpers.R") # contains user-defined functions & other useful objects   
 # Note: These functions will only work with this dataset 
 
@@ -252,3 +253,4 @@ saveRDS(rawdata, "clean_1.rds")
 # Remove all evidence :)
 rm(list = ls())
 detach(package:dplyr, unload = TRUE)
+
