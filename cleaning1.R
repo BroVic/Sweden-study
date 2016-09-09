@@ -1,4 +1,6 @@
 # Data cleaning for esener2009_20090924.tab
+# Dealing with types, names and labels
+
 library(dplyr)
 
 rawdata <- read.delim("dataset/esener2009_20090924.tab")

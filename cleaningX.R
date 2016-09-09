@@ -8,6 +8,7 @@
 
 # load data
 interim <- readRDS("clean_2.rds")
+dim(interim)
 
 # quantify the problem. Culprit responses are "Unknown" and "No answer"
 problem <- apply(interim, MARGIN = 2, function(x)
@@ -24,9 +25,6 @@ viewProblem <- function(x) {
 }
 # Draw plot
 viewProblem(problem)
-
-# Our analysis focuses on positions > Pos 60. Applying cut-off at pos 65.
-interim <- interim[, 65:99]
 
 # Replace with 'true' NAs and visualise them
 interim[interim == "Unknown" | interim == "No answer"] <- NA
@@ -45,7 +43,7 @@ index_col <- apply(interim, MARGIN = 2, anyNA)
 
 
 # subset the data to retain only non-NA records
-interim <- interim[index_row, ]
+final_clean <- interim[index_row, ]
 any_missing <- apply(interim, MARGIN = 2, anyNA)
 viewProblem(any_missing)
 
