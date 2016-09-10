@@ -1,6 +1,6 @@
 # ui.R
 
-main_data <- readRDS("~/5-Personal/Consulting/Sweden-study/clean_x.rds")
+main_data <- readRDS("data/CopyOfclean_x.rds")
 
 
 shinyUI(fluidPage(
@@ -8,6 +8,8 @@ shinyUI(fluidPage(
   
   sidebarLayout(
     sidebarPanel(
+      width = 2,
+      
       selectInput(inputId = "scope", label = "Analysis type", 
                   choices = c("Univariate", "Bivariate"),
                   selected = NULL),
@@ -33,7 +35,11 @@ shinyUI(fluidPage(
     ),
     
     mainPanel(
-      plotOutput("chart")
+      plotOutput("chart"),
+      
+      br(),
+      
+      tableOutput("table")
     )
   )
 ))
