@@ -12,7 +12,7 @@ show_missing <- function(x) {
 show_missing(draft)
 
 # subset data frame to focus of study
-subdata <- draft[, c(66:73, 230:243)]
+subdata <- draft[, c(66:78, 230:243)]
 
 (sum_missing <- show_missing(subdata))
 
