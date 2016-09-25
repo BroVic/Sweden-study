@@ -5,12 +5,12 @@ library(tidyr)
 library(effects)
 
 mydata<- readRDS("clean_x.rds")
-mydata <- mydata[, c(2, 5, 6, 12, 13, 8)] # extract variables of interest
+mydata <- mydata[, c(1, 4, 5, 11, 12, 7)]
 
 # Create object with outcome vs. predictors formula
 orgFormula <- concern.stress ~ risks.time + risks.communication + 
   risks.lackemployeecontrol + risks.unclearPolicy + 
-  risks.workinghours                                    # organisational issues
+  risks.workinghours
 
 # Build an array and flatten it into a multi-way contingency table
 flat <- ftable(xtabs(~ risks.time + risks.communication + risks.lackemployeecontrol + 
