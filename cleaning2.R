@@ -12,7 +12,7 @@ show_missing <- function(x) {
 show_missing(draft)
 
 # subset data frame to focus of study
-subdata <- draft[, c(66:73, 198:205, 230:243)]
+subdata <- draft[, c(66:73, 230:243)]
 
 (sum_missing <- show_missing(subdata))
 
@@ -23,9 +23,7 @@ plot(sum_missing, ylab = "No. of missing values", xlab = "Variable column no.",
 axis(1, las = 1); axis(2, las = 2)
 grid(NA, ny = NULL, lwd = 2, lty = "dotted", col = "black")
 
-subdata_final <- subdata[-which(is.na(subdata$er.concern.stress)), ]
-dim(subdata_final)
 
-saveRDS(subdata_final, "clean_2.rds")
+saveRDS(subdata, "clean_2.rds")
 
 detach(package:dplyr, unload = TRUE)
