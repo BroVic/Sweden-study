@@ -74,12 +74,12 @@ head(data.pred)
 
 # Tidy the dataframe
 data.pred <- data.pred %>%
-  gather(category, probability, `No concern`:`Major concern`, factor_key = TRUE)
+  gather(violence, probability, `No concern`:`Major concern`, factor_key = TRUE)
 head(data.pred)
 
 #plot the predicted probabilities
 p3 <- ggplot(data = data.pred, 
-             aes(x = category, y = probability, colour = risks.workinghours,
+             aes(x = violence, y = probability, colour = risks.workinghours,
                  group = risks.workinghours)) +
   geom_point(size = 3) + geom_line(linetype = "dashed", size = 2)
 p3
