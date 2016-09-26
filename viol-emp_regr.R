@@ -1,5 +1,4 @@
 # ... continued from bully-emp_regr.R 
-source("bully-emp_regr.R")
 
 length(myformula)
 theFORMULA <- Formula(myformula)

@@ -1,5 +1,4 @@
 # ... continued from stress-emp_regr.R 
-source("stress-emp_regr.R")
 
 length(myformula)
 theFORMULA <- Formula(myformula)

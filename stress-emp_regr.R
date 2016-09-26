@@ -1,5 +1,4 @@
 # ... continued from viol-org_regr.R 
-source("viol-org_regr.R")
 
 length(myformula)
 theFORMULA <- Formula(myformula)

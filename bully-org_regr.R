@@ -1,6 +1,5 @@
 # ... continued from stress-org_regr.R 
 library(MASS)
-source("stress-org_regr_analysis.R")
 
 length(myformula)
 theFORMULA <- Formula(myformula)
