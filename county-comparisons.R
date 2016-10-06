@@ -23,7 +23,7 @@ countryPlot <- ggplot(alldata, aes(x = country, fill = concern.stress)) +
   ggtitle("Distribution of countries")
 countryPlot
 
-vcdExtra::CMHtest(country_table)
-coin::cmh_test(country_table)
-vcdExtra::GKgamma(country_table)
+vcdExtra::CMHtest(country_table) # Cochrane-Mantel-Haenzl test
+coin::cmh_test(country_table)   # same but focusing on general associaion
+vcdExtra::GKgamma(country_table) # Goodman-Kruskal statistic
 
