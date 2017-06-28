@@ -11,47 +11,62 @@ tbl_df(rawdata)
 
 length(var.names)
 colnames(rawdata) <- var.names
-head(colnames(rawdata)); tail(colnames(rawdata))
+head(colnames(rawdata)); tail(colnames(rawdata)) # check if in order
 
 # Change variable types as appropriate
 # iteration paradigm to be applied to columns with similar responses
 # Note that for some loops, user-defined functions are called
 
-rawdata[, 1] <- seq(1, 28649, by = 1)
+
+rawdata[, 1] <- seq(from = 1, to = dim(rawdata)[1] , by = 1)
+head(rawdata[, 1])
+tail(rawdata[, 1])
 
 # Columns with the most repeated response
 col1 <- c(4, 6:14, 16:20, 23, 25:40, 53:61, 69:78, 82:87, 91:96, 101:106,
           110:112, 137, 140:156, 158:176, 178:183, 185:189, 201:216, 223:226,
           229)
-for (i in col1)
-  rawdata[, i] <- yesno1(i)
+length(col1)
+
+for (i in col1) 
+  rawdata[, i] <- yesno1(i) # replace 1, 2 & 3 with "Yes", "No" & "Unknown"
+head(rawdata[, col1])
 
 for (i in c(89:90, 98:99, 107:109, 113:114, 117:119))
-  rawdata[, i] <- yesno2(i)
+  rawdata[, i] <- yesno2(i) # replace 1, 2 & 3 with "Yes", "No" & "No Answer"
+head(rawdata[, 89:90])
 
-for (i in 41:52)
-  rawdata[, i] <- majorminor(i)
+for (i in 41:52) {
+  rawdata[, i] <- majorminor(i) # replace 1-4 with ordinal variable
+  head(rawdata[, i])
+}
 
 for (i in c(62:68, 194:200))
-  rawdata[, i] <- concerns(i)
+  rawdata[, i] <- concerns(i) # replace codes with responses on "concern"
+head(rawdata[, 62:68])
+tail(rawdata[, 62:68])
 
 for (i in c(127:128, 237:238))
-  rawdata[, i] <- props(i)
+  rawdata[, i] <- props(i)  # responses with percentages
+head(rawdata[, 127:128])
 
 for (i in c(129, 131:134))
-  rawdata[, i] <- interview(i)
+  rawdata[, i] <- interview(i) # willingness to be interviewed
+head(rawdata[, 129])
 
 for (i in c(130, 157)) {
   recode <- c("Training is sufficient" = 1,
               "More training would be desirable" = 2, "Unknown" = 3) 
   rawdata[, i] <- factor(rawdata[, i], levels = recode, labels = names(recode))
 }
+head(rawdata[, c(130, 157)])
 
 for (i in c(191:193)) {
   recode <- c("Agree" = 1, "Neither agree nor disagree" = 2, "Disagree" = 3,
               "Unknown" = 4) 
   rawdata[, i] <- factor(rawdata[, i], levels = recode, labels = names(recode))
 }
+head(rawdata[, 191:193])
 
 for (i in c(217:222)) {
   recode <- c("Very effective" = 1, "Quite effective" = 2,
