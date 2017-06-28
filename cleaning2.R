@@ -3,15 +3,17 @@
 library(dplyr)
 
 draft <- readRDS("clean_1.rds")
+dim(draft)
 
+# Adds up missing values in data frame by columns
 show_missing <- function(x) {
   if (is.data.frame(x) == TRUE)
     apply(x, MARGIN = 2, function(y) sum(is.na(y)))
 }
 
-show_missing(draft)
+show_missing(draft) 
 
-# subset data frame to focus of study
+# subset the data frame to the current focus of the study
 subdata <- draft[, c(66:78, 230:243)]
 
 (sum_missing <- show_missing(subdata))
