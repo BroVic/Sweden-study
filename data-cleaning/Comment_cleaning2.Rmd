@@ -1,0 +1,100 @@
+---
+title: "Comment on Data Cleaning"
+author: "Victor Ordu"
+date: "20 April 2016"
+output: word_document
+---
+## Highlights of the Data Cleaning
+**Large Numbers of Missing Values**
+
+It is note worthy that there are not only quite a substantial number of missing values from the data, but basically missng variable to which there are no responses. These could be displayed in a R console print out and plotted on a graph.
+First of all a function was built which would enumerate the number of missing values under each variable. It was named "show_miss()" and this was called using the data (named "draft") that had undergone the first stage of cleaning, with new variable names applied. The function was used during the exercise to repeatedly check for the number of missed values
+```{r, echo = FALSE}
+library(Amelia)
+library(dplyr)
+draft <- readRDS("clean_1.rds")
+```
+```{r}
+show_miss <- function(x) {
+  if (is.data.frame(x) == TRUE)
+    apply(x, MARGIN = 2, function(y) sum(is.na(y)))
+}
+```
+
+Then we count the missing values, which are huge for many variable.
+```{r}
+sum_miss <- show_miss(draft)
+```
+
+The missing values can be plotted to show the magnitude of missed vs. observed values.
+```{r, echo = FALSE}
+missmap(draft, main = "Plot of Missing Values in the dataset", legend = FALSE,
+        y.labels = NULL, y.at = NULL)
+legend("topleft", legend = c("Missed", "Observed"), bty = "n", 
+       title = "Legend", fill = c("wheat", "darkred"), border = "black")
+```
+
+Then a simple plot was generated of the number of missing values across the variables numbered 1 to 243 as follows
+
+````{r, echo = FALSE}
+plot(sum_miss, ylab = "No. of missing values", xlab = "Variable column no.",
+     col = "red", pch = "+", main = "Plot of Missing Values vs. Variables",
+     axes = FALSE, ylim = c(0, 30000))
+axis(1, las = 1); axis(2, las = 2)
+grid(NA, ny = NULL, lwd = 2, lty = "dotted", col = "black")
+```
+
+Note the distribution of missing values, which is markedely high in the last 2/3 of the questionnaire, with the later questions having not responses whatsoever. 
+
+The next was to entirely remove the redundant variables and check the distribution of missing values again, which yielded this plot
+```{r}
+all_zero <- which(sum_miss == 28649)
+mydata <- draft[, -all_zero]
+sum_miss2 <- show_miss(mydata)
+```
+
+```{r, echo = FALSE}
+plot(sum_miss2, ylab = "No. of missing values", xlab = "Variable column no.",
+     col = "darkgreen", pch = "+",
+     main = "Plot #2 of Missing Values vs. Variables", axes = FALSE,
+     ylim = c(0, 30000), sub = "--after removal of all zero-response variables--")
+axis(1, las = 1); axis(2, las = 2)
+grid(NA, ny = NULL, lwd = 2, lty = "dotted", col = "black")
+```
+
+The distribution of missing values remains virtually the same.
+
+Looking at the plot, it was decided that an arbitrary cut-off be applied, and in line with the shape of the curve. The decision was taken to experiment with all the records that have lower than 5,000 missing values and see if there would be a basis for subsetting. The console print-out yielded the following result
+```{r, echo = FALSE}
+less_5k <- which(sum_miss2 <= 5000)
+less_data <- mydata[, less_5k]
+show_miss(less_data)
+```
+
+and the heat map 
+```{r, echo = FALSE}
+missmap(less_data, main = "Plot of Missing Values in the dataset", legend = FALSE,
+        y.labels = NULL, y.at = NULL)
+legend("topleft", legend = c("Missed", "Observed"), bty = "n", 
+       title = "Legend", fill = c("wheat", "darkred"), border = "black")
+```
+
+The map shows that there are relatively much less missed values in this portion of the dataset. 
+
+Because we are dealing principally with categorical data, it was thought that the best approach might be to subset the cases that are complete, which amounted to 15,597 (54.44%) cases. The other option, which could be considered, would be to fill the gaps with measures of central tendency, in this case the mode.
+
+**Comment**
+
+1. There is no way to make an country comparisons with this data, because there are no data in country variables
+
+2. There were some options that read "DK/NA". DK presumably means "Don't Know", but what NA means is not clear. Note that even where there were "NA" options, there were still actual NAs i.e. missing values.
+
+3. Most of the variable that were from employee representatives were rife with missing values and this is obviously because there were fewer employee reps than the other body of respondents. So, if this group is to be studied, it may be appropriate to separate this group of persons from the body of data. However, I don't think there is a variable that clearly identifies who is an employee representative or not. A glimpse of the dataset, which has 99 variables and 15,597 observations, now looks like this
+```{r}
+compl <- which(complete.cases(less_data))
+compl.data <- less_data[compl, ]
+glimpse(compl.data)
+```
+
+I hope this helps somewhat. 
+*The full script for these analyses are available on request*
