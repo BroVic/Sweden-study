@@ -4,11 +4,11 @@
 interim <- readRDS("clean_2.rds")
 dim(interim)
 
+# How big is the problem of non-response?
 problem <- apply(interim, MARGIN = 2, function(x)
   length(x[x == "Unknown" | x == "No answer"]))
-problem
+problem   
 
-# Function to ease plotting
 viewProblem <- function(x) {
   plot(x,
      pch = "x",
@@ -18,13 +18,12 @@ viewProblem <- function(x) {
 }
 viewProblem(problem)
 
+# Now replace these responses with NAs
 interim[interim == "Unknown" | interim == "No answer"] <- NA
 newNAs <- apply(interim, MARGIN = 2, function(x) sum(is.na(x)))
 newNAs
 viewProblem(newNAs)
 
-if ("Amelia" %in% rownames(installed.packages()) == FALSE)
-  install.packages("Amelia") 
 Amelia::missmap(interim, main = "Plot of the Missing Values")
 
 sum(complete.cases(interim))
@@ -46,4 +45,4 @@ rm(list = ls())
 unloadNamespace("Amelia");
 unloadNamespace("dplyr")
 unloadNamespace("Rcpp")
-# END
+# END OF DATA CLEANING
