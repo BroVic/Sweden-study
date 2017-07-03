@@ -4,7 +4,7 @@ library(Hmisc)
 library(tidyr)
 library(effects)
 
-mydata<- readRDS("clean_x.rds")
+mydata<- readRDS("data-cleaning/clean_x.rds")
 mydata <- mydata[, c(1, 4, 5, 11, 12, 7)]
 
 # Create object with outcome vs. predictors formula
