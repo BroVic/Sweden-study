@@ -1,5 +1,6 @@
 # ... continued from multivariate.R where this outcome-predictor pair was used
 # to test assumptions for the model
+
 # Effect display and values rendered from fitting model shows that 
 # 'risks.communication' & 'risks.unclearPolicy' show no statistically 
 # significant with the response variable.
@@ -8,7 +9,8 @@ library(ggplot2)
 library(tidyr)
 library(effects)
 library(Formula)
-mydata <- readRDS("clean_x.rds")
+
+mydata <- readRDS("data-cleaning/clean_x.rds")
 
 myformula <- concern.stress | concern.bullying | concern.violence ~ 
   risks.time + risks.communication + risks.lackemployeecontrol + 
