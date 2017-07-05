@@ -1,7 +1,7 @@
 # cleaningX.R
 # Extra data cleaning - focused on converting certain responses to true NAs
 
-interim <- readRDS("clean_2.rds")
+interim <- readRDS("data-cleaning/clean_2.rds")
 dim(interim)
 
 # How big is the problem of non-response?
