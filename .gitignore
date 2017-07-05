@@ -21,7 +21,7 @@ output-multivar.docx
 discussion2.docx
 "VB Here come the dataset and a data dictionary.zip"
 dataset/*
-shinySweden/rsconnect/* 
+interactive/rsconnect/* 
 clean_1.rds
 clean_2.rds
 clean_x.rds
