@@ -5,7 +5,7 @@ library(dplyr)
 
 rawdata <- read.delim("dataset/esener2009_20090924.tab")
 source("helpers.R") # contains user-defined functions & other useful objects   
-# Note: These functions will only work with this dataset 
+                    # Note: These functions will only work with this dataset 
 
 tbl_df(rawdata)
 
@@ -265,9 +265,8 @@ glimpse(rawdata)
 # --------------------- #
 
 # Save data as an R object after 1st round of cleaning
-saveRDS(rawdata, "clean_1.rds")
+saveRDS(rawdata, "data-cleaning/clean_1.rds")
 
 # Remove all evidence :)
 rm(list = ls())
-detach(package:dplyr, unload = TRUE)
-
+# END

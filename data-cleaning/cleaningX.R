@@ -39,10 +39,7 @@ level_check
 
 dplyr::glimpse(final_clean)
 
-saveRDS(final_clean, file = "clean_x.rds")
+saveRDS(final_clean, file = "data-cleaning/clean_x.rds")
 
 rm(list = ls())
-unloadNamespace("Amelia");
-unloadNamespace("dplyr")
-unloadNamespace("Rcpp")
 # END OF DATA CLEANING

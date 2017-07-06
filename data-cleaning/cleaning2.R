@@ -2,7 +2,7 @@
 # Dealing with missing values
 library(dplyr)
 
-draft <- readRDS("clean_1.rds")
+draft <- readRDS("data-cleaning/clean_1.rds")
 dim(draft)
 
 # Adds up missing values in data frame by columns
@@ -14,7 +14,16 @@ show_missing <- function(x) {
 show_missing(draft) 
 
 # subset the data frame to the current focus of the study
-subdata <- draft[, c(66:78, 230:243)]
+subdata <- draft[, c(1, 66:78, 230:243)]
+
+# Incorporate actual survey questions as metadata
+connexn <- file("dataset/selection-varlabels.txt")
+open(connexn, "r")
+for (i in 2:ncol(subdata)) {
+  lab <- readLines(con = connexn, n = 1)
+  attr(subdata[, i], which = "comment") <- lab
+}
+close(connexn)
 
 (sum_missing <- show_missing(subdata))
 
@@ -26,6 +35,5 @@ axis(1, las = 1); axis(2, las = 2)
 grid(NA, ny = NULL, lwd = 2, lty = "dotted", col = "black")
 
 
-saveRDS(subdata, "clean_2.rds")
-
-detach(package:dplyr, unload = TRUE)
+saveRDS(subdata, "data-cleaning/clean_2.rds")
+#END
