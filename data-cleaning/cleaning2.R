@@ -36,4 +36,6 @@ grid(NA, ny = NULL, lwd = 2, lty = "dotted", col = "black")
 
 
 saveRDS(subdata, "data-cleaning/clean_2.rds")
+
+rm(list = ls())
 #END

@@ -4,7 +4,7 @@
 library(dplyr)
 
 rawdata <- read.delim("dataset/esener2009_20090924.tab")
-source("helpers.R") # contains user-defined functions & other useful objects   
+source("data-cleaning/helpers.R") # contains user-defined functions & other useful objects   
                     # Note: These functions will only work with this dataset 
 
 tbl_df(rawdata)
