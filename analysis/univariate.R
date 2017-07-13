@@ -27,6 +27,8 @@ tablesList <- sapply(categoricals, table)
 for (i in 2:length(tablesList)) {
   tab <- table(categoricals[, i])
   name_col <- colnames(categoricals)
+  if (grepl("country|nace", name_col[i]))
+    tab <- sort(tab, decreasing = TRUE)
   barplot(tab,
           main = paste("Barplot of", name_col[i]),
           sub = paste("Variable label:", comment(categoricals[, i])))
