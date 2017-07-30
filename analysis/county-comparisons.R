@@ -1,8 +1,9 @@
 # country-comparisons
 library(ggplot2)
 library(vcdExtra)
+library(coin)
 
-alldata <- readRDS("clean_x.rds")
+alldata <- readRDS("data-cleaning/clean_x.rds")
 
 levels(alldata$country)
 alldata$country <- factor(alldata$country,
@@ -20,7 +21,7 @@ country_margtabCol <- margin.table(country_table, 2)
 country_margtabCol 
 
 
-countryPlot_stress <- ggplot(alldata, aes(x = country, fill = concern.stress)) +
+countryPlot_stress <- ggplot(alldata, aes(country, fill = concern.stress)) +
   geom_bar() +
   ggtitle("Distribution of countries vs. stress")
 countryPlot_stress
@@ -38,7 +39,7 @@ countryPlot_violence <-
 countryPlot_violence
 
 CMHtest(country_table) # Cochrane-Mantel-Haenzl test
-coin::cmh_test(country_table)   # same but focusing on general associaion
+cmh_test(country_table)   # same but focusing on general associaion
 GKgamma(country_table) # Goodman-Kruskal statistic
 
 # To do:
@@ -47,34 +48,58 @@ GKgamma(country_table) # Goodman-Kruskal statistic
 
 ## create a new variables for Skandinavia
 alldata$isSkandinavian <- grepl("FI|DK|NO|SE", alldata$country)
-(tab1 <-table(alldata$concern.stress, alldata$isSkandinavian))
-round(prop.table(tab1, 2), 2)
-barplot(prop.table(tab1, 2))
+alldata$isSkandinavian <- factor(alldata$isSkandinavian,
+                                 levels = c(TRUE, FALSE),
+                                 labels = c("Skandinavia", "Other EU"))
+(tab1 <-table(alldata$isSkandinavian, alldata$concern.stress))
+(pcent_tab <- round(prop.table(tab1, 1), 2))
 
+# Function for rendering a bar chart for the different vaiables
+skand_bar <- function(var1, var2, pos = "topleft", vname = character()) {
+ barplot(prop.table(table(var1, var2), 1),
+         beside = T,
+         main = paste("Concern over",
+                      sQuote(vname),
+                      "in Skandinavia vs. others"),
+         ylim = c(0.0, 0.6),
+         legend = T,
+         args.legend = list(x = pos))
+}
 
-alldata$skand_OTHERS <- gsub("FI|DK|NO|SE", "SKND", alldata$country)
-theCountries <- levels(as.factor(alldata$skand_OTHERS))
-theCountries <- theCountries[-grep("SKND", theCountries)]
-theCountries <- c(theCountries, "SKND")
-alldata$skand_OTHERS <- factor(alldata$skand_OTHERS, levels = theCountries)
-str(alldata$skand_OTHERS)
-levels(alldata$skand_OTHERS)
-
-tab2 <- table(alldata$concern.bullying, alldata$skand_OTHERS)
-round(prop.table(tab2, 2), 2)
-barplot(prop.table(tab2, 2))   # nothing unusual seen
+skand_bar(alldata$isSkandinavian, alldata$concern.stress, vname = "stress")
+skand_bar(alldata$isSkandinavian, alldata$concern.bullying,
+          "topright", vname = "bullying")
+skand_bar(alldata$isSkandinavian, alldata$concern.violence,
+          "topright", vname = "violence")
 
 # check out Skandinavia data
-Skandinavia_data <- alldata[alldata$isSkandinavian == T, ]
+Skandinavia_data <- alldata[alldata$isSkandinavian == "Skandinavia", ]
 Skandinavia_data <- droplevels(Skandinavia_data)
 dim(Skandinavia_data)
 
 summary(Skandinavia_data)
-(tab_stress <- table(Skandinavia_data$concern.stress, Skandinavia_data$country))
-barplot(tab_stress)
+tab_stress <- table(Skandinavia_data$concern.stress, Skandinavia_data$country)
+skand_bar(Skandinavia_data$concern.stress, Skandinavia_data$country,
+          vname = "stress")
+chisq.test(tab_stress)
+CMHtest(tab_stress)
+cmh_test(tab_stress)
+GKgamma(tab_stress)
+
 (tab_bullying <- table(Skandinavia_data$concern.bullying,
                       Skandinavia_data$country))
-barplot(tab_bullying)
+skand_bar(Skandinavia_data$concern.bullying, Skandinavia_data$country,
+          vname = "bullying")
+chisq.test(tab_bullying)
+CMHtest(tab_bullying)
+cmh_test(tab_bullying)
+GKgamma(tab_bullying)
+
 (tab_violence <- table(Skandinavia_data$concern.stress,
                        Skandinavia_data$country))
-barplot(tab_violence)
+skand_bar(Skandinavia_data$concern.violence, Skandinavia_data$country,
+          vname = "violence")
+chisq.test(tab_violence)
+CMHtest(tab_violence)
+cmh_test(tab_violence)
+GKgamma(tab_violence)
